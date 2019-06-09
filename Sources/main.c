@@ -142,6 +142,7 @@ static void InitModulesThread(void* pData)
   OS_ThreadDelete(OS_PRIORITY_SELF);
 }
 
+
 /*! @brief Samples a value on an ADC channel and sends it to the corresponding DAC channel.
  *
  */
@@ -161,6 +162,7 @@ void AnalogLoopbackThread(void* pData)
     Analog_Put(analogData->channelNb, analogInputValue);
   }
 }
+
 
 /*lint -save  -e970 Disable MISRA rule (6.3) checking. */
 int main(void)
