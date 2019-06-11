@@ -73,6 +73,7 @@ bool UART_Init(const uint32_t baudRate, const uint32_t moduleClk)
 
   UART2_C2 |= UART_C2_RIE_MASK; /*!< Enabling Receiver Interrupt*/
   UART2_C2 |= UART_C2_TE_MASK | UART_C2_RE_MASK; /*!< Enabling UART, Transmitter and Receiver (bit 3 & bit 2 of UART control register 2). (pg. 1911-1912) */
+  UART2_C2 &= ~UART_C2_TIE_MASK; // Transmission complete interrupt enable
 
   /*!< IRQ UART2 = 49
    * 49 % 32 = */
@@ -131,12 +132,8 @@ void __attribute__ ((interrupt)) UART_ISR(void)
 
   if(UART2_C2 & UART_C2_TIE_MASK)
   {
-    if (UART2_S1 & UART_S1_TDRE_MASK)
-    {
-      UART2_C2 &= ~UART_C2_TIE_MASK; /*!<and it will disable the Transmit Interrupt*/
-      FIFO_Get(&TxFIFO, &TxData);
-      while(OS_SemaphoreSignal(UARTTXSemaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
-    }
+    UART2_C2 &= ~UART_C2_TIE_MASK; /*!<and it will disable the Transmit Interrupt*/
+    while(OS_SemaphoreSignal(UARTTXSemaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
   }
   /*!< Clear TDRE flag by reading the status register*/
   OS_ISRExit();
@@ -145,14 +142,12 @@ void __attribute__ ((interrupt)) UART_ISR(void)
 
 void UARTRXThread(void* pData)
 {
-
   for (;;)
   {
       OS_SemaphoreWait(UARTRXSemaphore, 0); //Wait for semaphore to be signaled.
       FIFO_Put(&RxFIFO, RxData);  /*!< If RDRF flag is raised, we are receiving data and it is put in RxFIFO */
       UART2_C2 |= UART_C2_RIE_MASK;
   }
-
 }
 
 void UARTTXThread(void* pData)
@@ -161,7 +156,11 @@ void UARTTXThread(void* pData)
   for (;;)
   {
     OS_SemaphoreWait(UARTTXSemaphore, 0); //Wait for semaphore to be signaled.
-    UART2_D = TxData;
+    if (UART2_S1 & UART_S1_TDRE_MASK) // Clear TDRE flag by reading it
+    {
+      FIFO_Get(&TxFIFO,(uint8_t* )&UART2_D);
+      UART2_C2 |= UART_C2_TIE_MASK; // Re-enable transmission interrupt
+    }
 
       /*!< if there is nothing to output, FIFO_Get should return false */
   }

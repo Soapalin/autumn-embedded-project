@@ -83,7 +83,7 @@ OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
 // Thread priorities
 // 0 = highest priority
 // ----------------------------------------
-const uint8_t ANALOG_THREAD_PRIORITIES[NB_ANALOG_CHANNELS] = {1, 2};
+const uint8_t ANALOG_THREAD_PRIORITIES[NB_ANALOG_CHANNELS] = {3, 4};
 
 /*! @brief Data structure used to pass Analog configuration to a user thread
  *
@@ -236,8 +236,8 @@ int main(void)
                           &InitModulesThreadStack[THREAD_STACK_SIZE - 1],
                           0); // Highest priority
 
-  while (OS_ThreadCreate(UARTRXThread, NULL, &UARTRXStack[THREAD_STACK_SIZE-1], 3) != OS_NO_ERROR); //UARTRX Thread
-  while (OS_ThreadCreate(UARTTXThread, NULL, &UARTTXStack[THREAD_STACK_SIZE-1], 4) != OS_NO_ERROR); //UARTTX Thread
+  while (OS_ThreadCreate(UARTRXThread, NULL, &UARTRXStack[THREAD_STACK_SIZE-1], 1) != OS_NO_ERROR); //UARTRX Thread
+  while (OS_ThreadCreate(UARTTXThread, NULL, &UARTTXStack[THREAD_STACK_SIZE-1], 2) != OS_NO_ERROR); //UARTTX Thread
 
 
   // Create threads for 2 analog loopback channels
