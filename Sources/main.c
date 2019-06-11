@@ -35,6 +35,29 @@
 // Analog functions
 #include "analog.h"
 
+
+// Modules
+#include "UART.h"
+#include "packet.h"
+#include "Flash.h"
+// Global variables and macro definitions
+const uint32_t BAUDRATE = 115200; /*!< Baud Rate specified in project */
+const uint32_t MODULECLK = CPU_BUS_CLK_HZ; /*!< Clock Speed referenced from Cpu.H */
+const uint16_t STUDENT_ID = 0x22E2; /*!< Student Number: 7533 */
+const uint32_t PIT_Period = 1000000000; /*!< 1/1056Hz = 641025640 ns*/
+const uint8_t PACKET_ACK_MASK = 0x80; /*!< Packet Acknowledgment mask, referring to bit 7 of the Packet */
+static volatile uint16union_t *TowerNumber; /*!< declaring static TowerNumber Pointer */
+static volatile uint16union_t *TowerMode; /*!< declaring static TowerMode Pointer */
+
+
+// Prototypes functions
+bool TowerInit(void);
+bool PacketHandler(void);
+bool StartupPackets(void);
+bool VersionPackets(void);
+bool TowerNumberPackets(void);
+bool TowerModePackets(void);
+
 // ----------------------------------------
 // Thread set up
 // ----------------------------------------
@@ -42,15 +65,25 @@
 #define THREAD_STACK_SIZE 100
 #define NB_ANALOG_CHANNELS 2
 
+OS_ECB* PacketHandlerSemaphore; //Declare a semaphore, to be signaled.
+
+
+
 // Thread stacks
 OS_THREAD_STACK(InitModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the LED Init thread. */
 static uint32_t AnalogThreadStacks[NB_ANALOG_CHANNELS][THREAD_STACK_SIZE] __attribute__ ((aligned(0x08)));
+OS_THREAD_STACK(UARTRXStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(UARTTXStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
+
+
+
 
 // ----------------------------------------
 // Thread priorities
 // 0 = highest priority
 // ----------------------------------------
-const uint8_t ANALOG_THREAD_PRIORITIES[NB_ANALOG_CHANNELS] = {1, 2};
+const uint8_t ANALOG_THREAD_PRIORITIES[NB_ANALOG_CHANNELS] = {3, 4};
 
 /*! @brief Data structure used to pass Analog configuration to a user thread
  *
@@ -75,6 +108,24 @@ static TAnalogThreadData AnalogThreadData[NB_ANALOG_CHANNELS] =
     .channelNb = 1
   }
 };
+
+/*! @brief The Packet Handler Thread
+ *
+ *  @note - Loops until interrupted by thread of higher priority
+ */
+void PacketHandlerThread(void* pData)
+{
+  OS_SemaphoreWait(PacketHandlerSemaphore, 0); //Wait until triggered by Semaphore Signal
+  StartupPackets();
+  for(;;)
+  {
+    if (Packet_Get())
+    {
+      PacketHandler(); /*!<  When a complete packet is finally formed, handle the packet accordingly */
+    }
+  }
+}
+
 
 void LPTMRInit(const uint16_t count)
 {
@@ -137,6 +188,9 @@ static void InitModulesThread(void* pData)
 
   // Initialise the low power timer to tick every 10 ms
   LPTMRInit(10);
+  TowerInit();
+  while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
+
 
   // We only do this once - therefore delete this thread
   OS_ThreadDelete(OS_PRIORITY_SELF);
@@ -160,6 +214,7 @@ void AnalogLoopbackThread(void* pData)
     Analog_Get(analogData->channelNb, &analogInputValue);
     // Put analog sample
     Analog_Put(analogData->channelNb, analogInputValue);
+
   }
 }
 
@@ -182,6 +237,10 @@ int main(void)
                           &InitModulesThreadStack[THREAD_STACK_SIZE - 1],
                           0); // Highest priority
 
+  while (OS_ThreadCreate(UARTRXThread, NULL, &UARTRXStack[THREAD_STACK_SIZE-1], 1) != OS_NO_ERROR); //UARTRX Thread
+  while (OS_ThreadCreate(UARTTXThread, NULL, &UARTTXStack[THREAD_STACK_SIZE-1], 2) != OS_NO_ERROR); //UARTTX Thread
+
+
   // Create threads for 2 analog loopback channels
   for (uint8_t threadNb = 0; threadNb < NB_ANALOG_CHANNELS; threadNb++)
   {
@@ -191,9 +250,162 @@ int main(void)
                             ANALOG_THREAD_PRIORITIES[threadNb]);
   }
 
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //Packet Handler Thread
+
+
+  PacketHandlerSemaphore = OS_SemaphoreCreate(0);
+
   // Start multithreading - never returns!
   OS_Start();
 }
+
+
+/*! @brief Process the packet that has been received
+ *
+ *  @return bool - TRUE if the packet has been handled properly.
+ *  @note Assumes that Packet_Init and Packet_Get was called
+ */
+bool PacketHandler(void)
+{ /*!<  Packet Handler used after Packet Get */
+  bool actionSuccess;  /*!<  Acknowledge is false as long as the package isn't acknowledge or if it's not required */
+  switch(Packet_Command & ~PACKET_ACK_MASK)
+  {
+    case TOWER_STARTUP_COMMAND:
+      actionSuccess = StartupPackets();
+      break;
+
+    case TOWER_VERSION_COMMAND:
+      actionSuccess = VersionPackets();
+      break;
+
+    case TOWER_NUMBER_COMMAND:
+      actionSuccess = TowerNumberPackets();
+      break;
+
+    case TOWER_MODE_COMMAND:
+      actionSuccess = TowerModePackets();
+      break;
+
+  }
+
+  if(Packet_Command & PACKET_ACK_MASK) /*!< if ACK bit is set, need to send back ACK packet if done successfully and NAK packet with bit7 cleared */
+  {
+    if(actionSuccess)
+    {
+      Packet_Put(Packet_Command, Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
+    }
+    else
+    {
+      Packet_Put((Packet_Command |=PACKET_ACK_MASK),Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
+    }
+  }
+}
+
+/*! @brief saves in Flash the TowerNumber and the TowerMode
+ *
+ *
+ *  @return bool - TRUE if packet has been sent successfully
+ *  @note Assumes that Packet_Init was called
+ */
+bool TowerInit(void)
+{
+  /*!<  Allocate var for both Tower Number and Mode, if succcessful, FlashWrite16 them with the right values */
+  Flash_Init();
+  bool towerModeInit = Flash_AllocateVar( (volatile void **) &TowerMode, sizeof(*TowerMode));
+  bool towerNumberInit = Flash_AllocateVar((volatile void **) &TowerNumber, sizeof(*TowerNumber));
+//  LEDs_Init();
+  if(towerModeInit && towerNumberInit)
+  {
+    if(TowerMode->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
+    {
+      Flash_Write16((volatile uint16_t *) TowerMode, 0x1); /*!< Parsing through the function: typecast volatile uint16_t pointer from uint16union_t pointer, and default towerMode = 1 */
+    }
+    if(TowerNumber->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
+    {
+      Flash_Write16((volatile uint16_t *) TowerNumber, STUDENT_ID); /*Like above, but with towerNumber set to our student ID = 7533*/
+    }
+//    if (RTC_Init((void*) RTCCallback , NULL) && PIT_Init(MODULECLK, (void*) &PITCallback, NULL) && (Packet_Init(BAUDRATE, MODULECLK)) && FTM_Init()) { /*!< Initiate all required modules */
+//      return true; /* !< If successful initiation then return true */
+//    }
+  }
+  return Packet_Init(BAUDRATE, MODULECLK);
+}
+
+
+/*! @brief Send the packets needed on startup
+
+ *  @return bool - TRUE if packet has been sent successfully
+ *  @note Assumes that Packet_Init was called
+ */
+bool StartupPackets(void)
+{
+  if(Packet_Put(TOWER_STARTUP_COMMAND, TOWER_STARTUP_PARAMETER1, TOWER_STARTUP_PARAMETER2, TOWER_STARTUP_PARAMETER3))
+  {
+    if(Packet_Put(TOWER_VERSION_COMMAND, TOWER_VERSION_PARAMETER1, TOWER_VERSION_PARAMETER2, TOWER_VERSION_PARAMETER3))
+    {
+      if(Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_GET, TowerNumber->s.Lo, TowerNumber->s.Hi))
+      {
+        return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_GET, TowerMode->s.Lo, TowerMode->s.Hi);
+      }
+    }
+  }
+}
+
+/*! @brief Send the tower number packet to the PC
+ *
+ *  @return bool - TRUE if packet has been sent successfully
+ *  @note Assumes that Packet_Init was called
+ */
+bool TowerNumberPackets(void)
+{
+  if(Packet_Parameter1 == (uint8_t) 1)
+  {
+    // if Parameter1 = 1 - get the tower number and send it to PC
+    return Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_GET, TowerNumber->s.Lo, TowerNumber->s.Hi);
+  }
+  else if(Packet_Parameter1 == (uint8_t) 2) // if Parameter1 =2 - write new TowerNumber to Flash and send it to interface
+  {
+    uint16union_t newTowerNumber; /*! < create a union variable to combine the two Parameters*/
+    newTowerNumber.s.Lo = Packet_Parameter2;
+    newTowerNumber.s.Hi = Packet_Parameter3;
+    //Flash_Write16((volatile uint16_t *) TowerNumber, newTowerNumber.l);
+    return Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_SET, TowerNumber->s.Lo, TowerNumber->s.Hi);
+  }
+}
+
+/*! @brief Send the tower mode packet to the PC
+ *
+ *  @return bool - TRUE if packet has been sent successfully
+ *  @note Assumes that Packet_Init was called
+ */
+bool TowerModePackets(void)
+{
+  if(Packet_Parameter1 == 1) // if paramater1 = 1 - get the towermode and send it to PC
+  {
+    return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_GET, TowerMode->s.Lo, TowerMode->s.Hi);
+  }
+  else if (Packet_Parameter1 == 2) // if parameter1 = 2 - set the towermode, write to Flash and send it back to PC
+  {
+    uint16union_t newTowerMode; /* !< Create a union variable to combine parameter2 and 3*/
+    newTowerMode.s.Lo = Packet_Parameter2;
+    newTowerMode.s.Hi = Packet_Parameter3;
+    //Flash_Write16((volatile uint16_t *) TowerMode, newTowerMode.l);
+    return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_SET, TowerMode->s.Lo, TowerMode->s.Hi);
+  }
+  return false;
+}
+
+
+/*! @brief Send the version packet to the PC
+ *
+ *  @return bool - TRUE if packet has been sent successfully
+ *  @note Assumes that Packet_Init was called
+ */
+bool VersionPackets(void)
+{
+  return Packet_Put(TOWER_VERSION_COMMAND,TOWER_VERSION_PARAMETER1,TOWER_VERSION_PARAMETER2, TOWER_VERSION_PARAMETER3);
+}
+
 
 /*!
  ** @}
