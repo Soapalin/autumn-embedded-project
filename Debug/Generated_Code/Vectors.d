@@ -5,7 +5,8 @@ Generated_Code/Vectors.o: ../Generated_Code/Vectors.c \
  C:/Users/12878930/Documents/autumn-embedded-project/Static_Code/IO_Map/MK70F12.h \
  C:\Users\12878930\Documents\autumn-embedded-project\Library/OS.h \
  C:/Users/12878930/Documents/autumn-embedded-project/Sources/UART.h \
- C:/Users/12878930/Documents/autumn-embedded-project/Sources/types.h
+ C:/Users/12878930/Documents/autumn-embedded-project/Sources/types.h \
+ C:/Users/12878930/Documents/autumn-embedded-project/Sources/PIT.h
 
 ../Generated_Code/Cpu.h:
 
@@ -24,3 +25,5 @@ C:\Users\12878930\Documents\autumn-embedded-project\Library/OS.h:
 C:/Users/12878930/Documents/autumn-embedded-project/Sources/UART.h:
 
 C:/Users/12878930/Documents/autumn-embedded-project/Sources/types.h:
+
+C:/Users/12878930/Documents/autumn-embedded-project/Sources/PIT.h:
