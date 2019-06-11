@@ -40,11 +40,15 @@
 #include "UART.h"
 #include "packet.h"
 #include "Flash.h"
+#include "PIT.h"
+#include "LEDs.h"
+
+
 // Global variables and macro definitions
 const uint32_t BAUDRATE = 115200; /*!< Baud Rate specified in project */
 const uint32_t MODULECLK = CPU_BUS_CLK_HZ; /*!< Clock Speed referenced from Cpu.H */
 const uint16_t STUDENT_ID = 0x22E2; /*!< Student Number: 7533 */
-const uint32_t PIT_Period = 1000000000; /*!< 1/1056Hz = 641025640 ns*/
+const uint32_t PIT_Period = 1000000000; /*!< 1 second in nano */
 const uint8_t PACKET_ACK_MASK = 0x80; /*!< Packet Acknowledgment mask, referring to bit 7 of the Packet */
 static volatile uint16union_t *TowerNumber; /*!< declaring static TowerNumber Pointer */
 static volatile uint16union_t *TowerMode; /*!< declaring static TowerMode Pointer */
@@ -75,8 +79,7 @@ static uint32_t AnalogThreadStacks[NB_ANALOG_CHANNELS][THREAD_STACK_SIZE] __attr
 OS_THREAD_STACK(UARTRXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(UARTTXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
-
-
+OS_THREAD_STACK(PITStack, THREAD_STACK_SIZE);
 
 
 // ----------------------------------------
@@ -191,7 +194,6 @@ static void InitModulesThread(void* pData)
   TowerInit();
   while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
 
-
   // We only do this once - therefore delete this thread
   OS_ThreadDelete(OS_PRIORITY_SELF);
 }
@@ -250,7 +252,8 @@ int main(void)
                             ANALOG_THREAD_PRIORITIES[threadNb]);
   }
 
-  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //Packet Handler Thread
+  while (OS_ThreadCreate(PITThread, NULL, &PITStack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //PIT Thread
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //Packet Handler Thread
 
 
   PacketHandlerSemaphore = OS_SemaphoreCreate(0);
@@ -313,7 +316,7 @@ bool TowerInit(void)
   Flash_Init();
   bool towerModeInit = Flash_AllocateVar( (volatile void **) &TowerMode, sizeof(*TowerMode));
   bool towerNumberInit = Flash_AllocateVar((volatile void **) &TowerNumber, sizeof(*TowerNumber));
-//  LEDs_Init();
+  LEDs_Init();
   if(towerModeInit && towerNumberInit)
   {
     if(TowerMode->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
@@ -328,6 +331,8 @@ bool TowerInit(void)
 //      return true; /* !< If successful initiation then return true */
 //    }
   }
+  PIT_Init(MODULECLK, NULL , NULL);
+  PIT_Set(PIT_Period ,true);
   return Packet_Init(BAUDRATE, MODULECLK);
 }
 
