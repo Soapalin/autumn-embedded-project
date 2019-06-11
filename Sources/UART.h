@@ -51,4 +51,15 @@ void UART_Poll(void);
  */
 void __attribute__ ((interrupt)) UART_ISR(void);
 
+/*! @brief UART Receive Thread
+ *
+ *Manages the reception of packets
+ */
+void UARTRXThread(void* pData);
+
+/*! @brief UART Transmit Thread
+ *
+ *manages the transmission of packets
+ */
+void UARTTXThread(void* pData);
 #endif

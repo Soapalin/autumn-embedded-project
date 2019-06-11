@@ -14,13 +14,14 @@
 ** ###################################################################*/
 /*!
 ** @file UART.c
+** @version 1.0
 ** @brief
 **         UART module.
 **         This module contains code for UART control.
 */
 /*!
 **  @addtogroup UART_module UART module documentation
-**   @{@}
+**  @{
 */
 /*! @file
  *
@@ -37,10 +38,17 @@
 #include "MK70F12.h"
 #include "FIFO.h"
 #include "UART.h"
+#include "OS.h"
+
+OS_ECB* UARTRXSemaphore; //Declare Semaphore
+OS_ECB* UARTTXSemaphore; //Declare Semaphore
 
 
 static TFIFO TxFIFO; /*!< private global variable of type struct TxFIFO defined */
 static TFIFO RxFIFO; /*!< private global variable of type struct RxFIFO defined */
+
+static uint8_t RxData;
+static uint8_t TxData;
 
 bool UART_Init(const uint32_t baudRate, const uint32_t moduleClk)
 {
@@ -53,9 +61,6 @@ bool UART_Init(const uint32_t baudRate, const uint32_t moduleClk)
 
   PORTE_PCR16 = PORT_PCR_MUX(3); /*!< Setting the MUX bits (8, 9, 10) in the PORTE_PCR16/17 register to high. (pg. 316,317) */
   PORTE_PCR17 = PORT_PCR_MUX(3); /*!< Setting the MUX bits (8, 9, 10) in the PORTE_PCR16/17 register to high. (pg. 316,317) */
-
-  UART2_C2 &= ~UART_C2_TE_MASK; /*!< Disable UART transmitter */
-  UART2_C2 &= ~UART_C2_RE_MASK; /*!< Disable UART receiver */
 
   uint16union_t bdsbr; /*!< defining BDSBR as a union to call upper and lower components of the value (To SET BDH & BDL). */
   uint8_t sampleRate = 16; /*!< Defining sample rate for BaudRate Calculation. */
@@ -77,6 +82,10 @@ bool UART_Init(const uint32_t baudRate, const uint32_t moduleClk)
   FIFO_Init(&RxFIFO); /*!< Initiate FIFO Receiver */
   FIFO_Init(&TxFIFO); /*!< initiate FIFO Transmitter */
 
+
+  UARTRXSemaphore = OS_SemaphoreCreate(0);  //Create the semaphore
+  UARTTXSemaphore = OS_SemaphoreCreate(0); //Create the semaphore
+
   return true; /*!< return true if it has a character otherwise false. */
 }
 
@@ -88,9 +97,9 @@ bool UART_InChar(uint8_t* const dataPtr)
 bool UART_OutChar(const uint8_t data)
 {
   bool success;
-  UART2_C2 &= ~UART_C2_TIE_MASK; // Disabling Transmitter Interrupt
+//  UART2_C2 &= ~UART_C2_TIE_MASK; // Disabling Transmitter Interrupt
    /*!< Attempt to PUT data from TxFIFO if empty return false, if data return true */
-  success = FIFO_Put(&TxFIFO, data);
+  success =FIFO_Put(&TxFIFO, data);
   UART2_C2 |= UART_C2_TIE_MASK; /*!< Enabling Transmitter Interrupt when data is ready to transmit */
   return success;
 }
@@ -109,28 +118,55 @@ void UART_Poll(void)
 
 void __attribute__ ((interrupt)) UART_ISR(void)
 {
-  if (UART2_C2 & UART_C2_RIE_MASK)
+  OS_ISREnter();
+  if(UART2_C2 & UART_C2_RIE_MASK)
   {
     if (UART2_S1 & UART_S1_RDRF_MASK) /*!< Checking UART2 Status Register (pg. 1913) as well as the checking the 6th bit of the register (Receive Data Register Full Flag - Bit 5) to see if there are received packets */
     {
-      FIFO_Put(&RxFIFO, UART2_D);  /*!< If RDRF flag is raised, we are receiving data and it is put in RxFIFO */
+      UART2_C2 &= ~UART_C2_RIE_MASK;
+      RxData = UART2_D;
+      while(OS_SemaphoreSignal(UARTRXSemaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
     }
   }
-  if (UART2_C2 & UART_C2_TIE_MASK)
+
+  if(UART2_C2 & UART_C2_TIE_MASK)
   {
-    /*!< Clear TDRE flag by reading the status register*/
     if (UART2_S1 & UART_S1_TDRE_MASK)
     {
-      if (!FIFO_Get(&TxFIFO, (uint8_t *) &UART2_D))
-      {
-	      /*!< if there is nothing to output, FIFO_Get should return false */
-	      UART2_C2 &= ~UART_C2_TIE_MASK; /*!<and it will disable the Transmit Interrupt*/
-      }
+      UART2_C2 &= ~UART_C2_TIE_MASK; /*!<and it will disable the Transmit Interrupt*/
+      FIFO_Get(&TxFIFO, &TxData);
+      while(OS_SemaphoreSignal(UARTTXSemaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
     }
+  }
+  /*!< Clear TDRE flag by reading the status register*/
+  OS_ISRExit();
+}
+
+
+void UARTRXThread(void* pData)
+{
+
+  for (;;)
+  {
+      OS_SemaphoreWait(UARTRXSemaphore, 0); //Wait for semaphore to be signaled.
+      FIFO_Put(&RxFIFO, RxData);  /*!< If RDRF flag is raised, we are receiving data and it is put in RxFIFO */
+      UART2_C2 |= UART_C2_RIE_MASK;
   }
 
 }
 
+void UARTTXThread(void* pData)
+{
+
+  for (;;)
+  {
+    OS_SemaphoreWait(UARTTXSemaphore, 0); //Wait for semaphore to be signaled.
+    UART2_D = TxData;
+
+      /*!< if there is nothing to output, FIFO_Get should return false */
+  }
+// Transmit the packet back to the PC
+}
 /*!
 * @}
 */

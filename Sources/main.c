@@ -49,6 +49,7 @@ const uint8_t PACKET_ACK_MASK = 0x80; /*!< Packet Acknowledgment mask, referring
 static volatile uint16union_t *TowerNumber; /*!< declaring static TowerNumber Pointer */
 static volatile uint16union_t *TowerMode; /*!< declaring static TowerMode Pointer */
 
+
 // Prototypes functions
 bool TowerInit(void);
 bool PacketHandler(void);
@@ -64,9 +65,19 @@ bool TowerModePackets(void);
 #define THREAD_STACK_SIZE 100
 #define NB_ANALOG_CHANNELS 2
 
+OS_ECB* PacketHandlerSemaphore; //Declare a semaphore, to be signaled.
+
+
+
 // Thread stacks
 OS_THREAD_STACK(InitModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the LED Init thread. */
 static uint32_t AnalogThreadStacks[NB_ANALOG_CHANNELS][THREAD_STACK_SIZE] __attribute__ ((aligned(0x08)));
+OS_THREAD_STACK(UARTRXStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(UARTTXStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
+
+
+
 
 // ----------------------------------------
 // Thread priorities
@@ -97,6 +108,23 @@ static TAnalogThreadData AnalogThreadData[NB_ANALOG_CHANNELS] =
     .channelNb = 1
   }
 };
+
+/*! @brief The Packet Handler Thread
+ *
+ *  @note - Loops until interrupted by thread of higher priority
+ */
+void PacketHandlerThread(void* pData)
+{
+  OS_SemaphoreWait(PacketHandlerSemaphore, 0); //Wait until triggered by Semaphore Signal
+  for(;;)
+  {
+    if (Packet_Get())
+    {
+      PacketHandler(); /*!<  When a complete packet is finally formed, handle the packet accordingly */
+    }
+  }
+}
+
 
 void LPTMRInit(const uint16_t count)
 {
@@ -159,6 +187,9 @@ static void InitModulesThread(void* pData)
 
   // Initialise the low power timer to tick every 10 ms
   LPTMRInit(10);
+  Packet_Init(BAUDRATE, MODULECLK);
+  while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
+
 
   // We only do this once - therefore delete this thread
   OS_ThreadDelete(OS_PRIORITY_SELF);
@@ -182,6 +213,7 @@ void AnalogLoopbackThread(void* pData)
     Analog_Get(analogData->channelNb, &analogInputValue);
     // Put analog sample
     Analog_Put(analogData->channelNb, analogInputValue);
+
   }
 }
 
@@ -204,6 +236,10 @@ int main(void)
                           &InitModulesThreadStack[THREAD_STACK_SIZE - 1],
                           0); // Highest priority
 
+  while (OS_ThreadCreate(UARTRXThread, NULL, &UARTRXStack[THREAD_STACK_SIZE-1], 3) != OS_NO_ERROR); //UARTRX Thread
+  while (OS_ThreadCreate(UARTTXThread, NULL, &UARTTXStack[THREAD_STACK_SIZE-1], 4) != OS_NO_ERROR); //UARTTX Thread
+
+
   // Create threads for 2 analog loopback channels
   for (uint8_t threadNb = 0; threadNb < NB_ANALOG_CHANNELS; threadNb++)
   {
@@ -212,6 +248,11 @@ int main(void)
                             &AnalogThreadStacks[threadNb][THREAD_STACK_SIZE - 1],
                             ANALOG_THREAD_PRIORITIES[threadNb]);
   }
+
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //Packet Handler Thread
+
+
+  PacketHandlerSemaphore = OS_SemaphoreCreate(0);
 
   // Start multithreading - never returns!
   OS_Start();
@@ -300,9 +341,9 @@ bool StartupPackets(void)
   {
     if(Packet_Put(TOWER_VERSION_COMMAND, TOWER_VERSION_PARAMETER1, TOWER_VERSION_PARAMETER2, TOWER_VERSION_PARAMETER3))
     {
-      if(Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_PARAMETER1, TowerNumber->s.Lo, TowerNumber->s.Hi))
+      if(Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_PARAMETER1, 0xE2, 0x22))
       {
-        return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_GET, TowerMode->s.Lo, TowerMode->s.Hi);
+        return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_GET, 1, 0);
       }
     }
   }
