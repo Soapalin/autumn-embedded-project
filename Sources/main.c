@@ -39,11 +39,11 @@
 // Modules
 #include "UART.h"
 #include "packet.h"
-
+#include "Flash.h"
 // Global variables and macro definitions
 const uint32_t BAUDRATE = 115200; /*!< Baud Rate specified in project */
 const uint32_t MODULECLK = CPU_BUS_CLK_HZ; /*!< Clock Speed referenced from Cpu.H */
-const uint16_t STUDENT_ID = 0x1D6D; /*!< Student Number: 7533 */
+const uint16_t STUDENT_ID = 0x22E2; /*!< Student Number: 7533 */
 const uint32_t PIT_Period = 1000000000; /*!< 1/1056Hz = 641025640 ns*/
 const uint8_t PACKET_ACK_MASK = 0x80; /*!< Packet Acknowledgment mask, referring to bit 7 of the Packet */
 static volatile uint16union_t *TowerNumber; /*!< declaring static TowerNumber Pointer */
@@ -116,6 +116,7 @@ static TAnalogThreadData AnalogThreadData[NB_ANALOG_CHANNELS] =
 void PacketHandlerThread(void* pData)
 {
   OS_SemaphoreWait(PacketHandlerSemaphore, 0); //Wait until triggered by Semaphore Signal
+  StartupPackets();
   for(;;)
   {
     if (Packet_Get())
@@ -187,7 +188,7 @@ static void InitModulesThread(void* pData)
 
   // Initialise the low power timer to tick every 10 ms
   LPTMRInit(10);
-  Packet_Init(BAUDRATE, MODULECLK);
+  TowerInit();
   while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
 
 
@@ -309,23 +310,24 @@ bool PacketHandler(void)
 bool TowerInit(void)
 {
   /*!<  Allocate var for both Tower Number and Mode, if succcessful, FlashWrite16 them with the right values */
-//  Flash_Init();
-//  bool towerModeInit = Flash_AllocateVar( (volatile void **) &TowerMode, sizeof(*TowerMode));
-//  bool towerNumberInit = Flash_AllocateVar((volatile void **) &TowerNumber, sizeof(*TowerNumber));
-//  if(towerModeInit && towerNumberInit && LEDs_Init())
-//  {
-//    if(TowerMode->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
-//    {
-//      Flash_Write16((volatile uint16_t *) TowerMode, 0x1); /*!< Parsing through the function: typecast volatile uint16_t pointer from uint16union_t pointer, and default towerMode = 1 */
-//    }
-//    if(TowerNumber->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
-//    {
-//      Flash_Write16((volatile uint16_t *) TowerNumber, STUDENT_ID); /*Like above, but with towerNumber set to our student ID = 7533*/
-//    }
+  Flash_Init();
+  bool towerModeInit = Flash_AllocateVar( (volatile void **) &TowerMode, sizeof(*TowerMode));
+  bool towerNumberInit = Flash_AllocateVar((volatile void **) &TowerNumber, sizeof(*TowerNumber));
+//  LEDs_Init();
+  if(towerModeInit && towerNumberInit)
+  {
+    if(TowerMode->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
+    {
+      Flash_Write16((volatile uint16_t *) TowerMode, 0x1); /*!< Parsing through the function: typecast volatile uint16_t pointer from uint16union_t pointer, and default towerMode = 1 */
+    }
+    if(TowerNumber->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
+    {
+      Flash_Write16((volatile uint16_t *) TowerNumber, STUDENT_ID); /*Like above, but with towerNumber set to our student ID = 7533*/
+    }
 //    if (RTC_Init((void*) RTCCallback , NULL) && PIT_Init(MODULECLK, (void*) &PITCallback, NULL) && (Packet_Init(BAUDRATE, MODULECLK)) && FTM_Init()) { /*!< Initiate all required modules */
 //      return true; /* !< If successful initiation then return true */
 //    }
-//  }
+  }
   return Packet_Init(BAUDRATE, MODULECLK);
 }
 
@@ -341,9 +343,9 @@ bool StartupPackets(void)
   {
     if(Packet_Put(TOWER_VERSION_COMMAND, TOWER_VERSION_PARAMETER1, TOWER_VERSION_PARAMETER2, TOWER_VERSION_PARAMETER3))
     {
-      if(Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_PARAMETER1, 0xE2, 0x22))
+      if(Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_GET, TowerNumber->s.Lo, TowerNumber->s.Hi))
       {
-        return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_GET, 1, 0);
+        return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_GET, TowerMode->s.Lo, TowerMode->s.Hi);
       }
     }
   }
