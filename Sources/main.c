@@ -363,9 +363,6 @@ bool TowerInit(void)
     {
       Flash_Write16((volatile uint16_t *) TowerNumber, STUDENT_ID); /*Like above, but with towerNumber set to our student ID = 7533*/
     }
-//    if (RTC_Init((void*) RTCCallback , NULL) && PIT_Init(MODULECLK, (void*) &PITCallback, NULL) && (Packet_Init(BAUDRATE, MODULECLK)) && FTM_Init()) { /*!< Initiate all required modules */
-//      return true; /* !< If successful initiation then return true */
-//    }
   }
   RTC_Init(NULL, NULL);
   PIT_Init(MODULECLK, NULL , NULL);
