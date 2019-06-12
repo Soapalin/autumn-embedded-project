@@ -9,7 +9,8 @@ Sources/main.o: ../Sources/main.c \
  C:\Users\12878930\Documents\autumn-embedded-project\Library/analog.h \
  C:/Users/12878930/Documents/autumn-embedded-project/Sources/types.h \
  ../Sources/UART.h ../Sources/types.h ../Sources/packet.h \
- ../Sources/Flash.h ../Sources/PIT.h ../Sources/RTC.h ../Sources/LEDs.h
+ ../Sources/Flash.h ../Sources/PIT.h ../Sources/RTC.h ../Sources/LEDs.h \
+ ../Sources/FTM.h
 
 C:/Users/12878930/Documents/autumn-embedded-project/Generated_Code/Cpu.h:
 
@@ -42,3 +43,5 @@ C:/Users/12878930/Documents/autumn-embedded-project/Sources/types.h:
 ../Sources/RTC.h:
 
 ../Sources/LEDs.h:
+
+../Sources/FTM.h:

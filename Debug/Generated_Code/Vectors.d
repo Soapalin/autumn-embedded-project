@@ -7,7 +7,8 @@ Generated_Code/Vectors.o: ../Generated_Code/Vectors.c \
  C:/Users/12878930/Documents/autumn-embedded-project/Sources/UART.h \
  C:/Users/12878930/Documents/autumn-embedded-project/Sources/types.h \
  C:/Users/12878930/Documents/autumn-embedded-project/Sources/PIT.h \
- C:/Users/12878930/Documents/autumn-embedded-project/Sources/RTC.h
+ C:/Users/12878930/Documents/autumn-embedded-project/Sources/RTC.h \
+ C:/Users/12878930/Documents/autumn-embedded-project/Sources/FTM.h
 
 ../Generated_Code/Cpu.h:
 
@@ -30,3 +31,5 @@ C:/Users/12878930/Documents/autumn-embedded-project/Sources/types.h:
 C:/Users/12878930/Documents/autumn-embedded-project/Sources/PIT.h:
 
 C:/Users/12878930/Documents/autumn-embedded-project/Sources/RTC.h:
+
+C:/Users/12878930/Documents/autumn-embedded-project/Sources/FTM.h:

@@ -43,6 +43,7 @@
 #include "PIT.h"
 #include "RTC.h"
 #include "LEDs.h"
+#include "FTM.h"
 
 
 // Global variables and macro definitions
@@ -53,6 +54,17 @@ const uint32_t PIT_Period = 1000000000; /*!< 1 second in nano */
 const uint8_t PACKET_ACK_MASK = 0x80; /*!< Packet Acknowledgment mask, referring to bit 7 of the Packet */
 static volatile uint16union_t *TowerNumber; /*!< declaring static TowerNumber Pointer */
 static volatile uint16union_t *TowerMode; /*!< declaring static TowerMode Pointer */
+
+TFTMChannel FTMPacket =
+{
+  0, /*!< Channel being used */
+  CPU_MCGFF_CLK_HZ_CONFIG_0, /*!< delay count: fixed frequency clock, mentioned in Timing and Generation Docs */
+  TIMER_FUNCTION_OUTPUT_COMPARE, /*!< Brief specific: we are using OutputCompare*/
+  TIMER_OUTPUT_LOW, /*!< Choose one functionality of output compare: low */
+  NULL, /*!< Setting User Callback Function NOW UNUSED */
+  (void*) 0, /*!< User callback arguments being passed  NOW UNUSED */
+};
+
 
 
 // Prototypes functions
@@ -86,7 +98,7 @@ OS_THREAD_STACK(UARTTXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PITStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(RTCStack, THREAD_STACK_SIZE);
-
+OS_THREAD_STACK(FTMStack, THREAD_STACK_SIZE);
 
 
 // ----------------------------------------
@@ -131,6 +143,8 @@ void PacketHandlerThread(void* pData)
   {
     if (Packet_Get())
     {
+      FTM_StartTimer(&FTMPacket); /*!< Start timer, calling interrupt User function (FTM0Callback) once completed.  */
+      LEDs_On(LED_BLUE);
       PacketHandler(); /*!<  When a complete packet is finally formed, handle the packet accordingly */
     }
   }
@@ -261,7 +275,8 @@ int main(void)
 
   while (OS_ThreadCreate(PITThread, NULL, &PITStack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //PIT Thread
   while (OS_ThreadCreate(RTCThread, NULL, &RTCStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //RTC Thread
-  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //Packet Handler Thread
+  while (OS_ThreadCreate(FTMThread, NULL, &FTMStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //FTM Thread
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 8) != OS_NO_ERROR); //Packet Handler Thread
 
 
   PacketHandlerSemaphore = OS_SemaphoreCreate(0);
@@ -355,6 +370,8 @@ bool TowerInit(void)
   RTC_Init(NULL, NULL);
   PIT_Init(MODULECLK, NULL , NULL);
   PIT_Set(PIT_Period ,true);
+  FTM_Init();
+  FTM_Set(&FTMPacket); /*!< configure FTM0 functionality, passing in the declared struct address containing values at top of file */
   return Packet_Init(BAUDRATE, MODULECLK);
 }
 

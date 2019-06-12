@@ -59,6 +59,7 @@
 #include "UART.h"
 #include "PIT.h"
 #include "RTC.h"
+#include "FTM.h"
 
 
 void __attribute__ ((interrupt)) LPTimer_ISR(void);
@@ -157,7 +158,7 @@ void __attribute__ ((interrupt)) LPTimer_ISR(void);
     (tIsrFunc)&Cpu_Interrupt,          /* 0x4B  0x0000012C   -   ivINT_CMP0                     unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x4C  0x00000130   -   ivINT_CMP1                     unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x4D  0x00000134   -   ivINT_CMP2                     unused by PE */
-    (tIsrFunc)&Cpu_Interrupt,          /* 0x4E  0x00000138   -   ivINT_FTM0                     unused by PE */
+    (tIsrFunc)&FTM0_ISR,               /* 0x4E  0x00000138   -   ivINT_FTM0                     unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x4F  0x0000013C   -   ivINT_FTM1                     unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x50  0x00000140   -   ivINT_FTM2                     unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x51  0x00000144   -   ivINT_CMT                      unused by PE */
