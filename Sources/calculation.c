@@ -13,7 +13,7 @@ void Sliding_Voltage(float data)
 {
   Voltage[15] = data;
   VoltageSqr[15] = data*data;
-  TotalVoltageSqr += data;
+  TotalVoltageSqr += VoltageSqr[15];
   TotalVoltageSqr -= Voltage[0];
   for(int i = 1; i < 15; i++)
   {
@@ -22,16 +22,17 @@ void Sliding_Voltage(float data)
   }
 }
 
+
 float Real_RMS()
 {
-  float SqRootRMS = (TotalVoltageSqr/16);
-  float voltageRMS = ((SqRootRMS/0.707)+0.707)/2;
+  float SqRootRMS = (TotalVoltageSqr/16); // Dividing the total of v^2 by the number of sample per period N = 16
+  float voltageRMS = ((SqRootRMS/0.707)+0.707)/2; // equation given in Fixed-point processing for square root of a value
   return voltageRMS;
 }
 
 float Current_RMS(float voltageRMS)
 {
-  return (voltageRMS*0.350);
+  return (voltageRMS*0.350); // 350mV RMS = 1 A RMS (project notes)
 }
 
 

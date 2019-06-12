@@ -239,9 +239,28 @@ void AnalogLoopbackThread(void* pData)
     Sliding_Voltage(analogInputValue);
     float voltageRMS = Real_RMS();
     float currentRMS = Current_RMS(voltageRMS);
+    if(currentRMS > 1.03)
+    {
+      float delay;
+      switch(Current_Charac)
+      {
+        case INVERSE:
+          delay = ((INVERSE_K)/((currentRMS^(INVERSE_ALPHA))-1));
+          break;
 
+        case VERY_INVERSE:
+          delay = ((VERY_INVERSE_K)/((currentRMS^(VERY_INVERSE_ALPHA))-1));
+          break;
+
+        case EXTREMELY_INVERSE:
+          delay = ((EXTREMELY_INVERSE_K)/((currentRMS^(EXTREMELY_INVERSE_ALPHA))-1));
+          break;
+      }
+      PIT_Set(delay*PIT_Period, true);
+
+    }
     // Put analog sample
-    Analog_Put(analogData->channelNb, analogInputValue);
+//    Analog_Put(analogData->channelNb, analogInputValue);
 
   }
 }
@@ -371,7 +390,6 @@ bool TowerInit(void)
   }
   RTC_Init(NULL, NULL);
   PIT_Init(MODULECLK, NULL , NULL);
-  PIT_Set(PIT_Period ,true);
   FTM_Init();
   FTM_Set(&FTMPacket); /*!< configure FTM0 functionality, passing in the declared struct address containing values at top of file */
   return Packet_Init(BAUDRATE, MODULECLK);

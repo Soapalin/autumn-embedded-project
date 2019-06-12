@@ -94,6 +94,7 @@ void PITThread(void* pData)
   for(;;)
   {
     OS_SemaphoreWait(PITSemaphore, 0);
+    //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
     LEDs_Toggle(LED_GREEN);
   }
 // handles PIT packets
