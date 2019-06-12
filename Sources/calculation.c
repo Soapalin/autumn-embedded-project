@@ -6,7 +6,8 @@
  *  @author Lucien Tran
  *  @date 2019-04-16
  */
-#include "types.h"
+
+
 #include "calculation.h"
 
 void Sliding_Voltage(float data)
@@ -26,7 +27,8 @@ void Sliding_Voltage(float data)
 float Real_RMS()
 {
   float SqRootRMS = (TotalVoltageSqr/16); // Dividing the total of v^2 by the number of sample per period N = 16
-  float voltageRMS = ((SqRootRMS/0.707)+0.707)/2; // equation given in Fixed-point processing for square root of a value
+  float voltageRMS = sqrt(SqRootRMS); // Using equation from math.h
+//  float voltageRMS = ((SqRootRMS/0.707)+0.707)/2; // equation given in Fixed-point processing for square root of a value
   return voltageRMS;
 }
 

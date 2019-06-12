@@ -245,15 +245,15 @@ void AnalogLoopbackThread(void* pData)
       switch(Current_Charac)
       {
         case INVERSE:
-          delay = ((INVERSE_K)/((currentRMS^(INVERSE_ALPHA))-1));
+          delay = ((INVERSE_K)/((pow(currentRMS,(INVERSE_ALPHA)))-1));
           break;
 
         case VERY_INVERSE:
-          delay = ((VERY_INVERSE_K)/((currentRMS^(VERY_INVERSE_ALPHA))-1));
+          delay = ((VERY_INVERSE_K)/(currentRMS-1));
           break;
 
         case EXTREMELY_INVERSE:
-          delay = ((EXTREMELY_INVERSE_K)/((currentRMS^(EXTREMELY_INVERSE_ALPHA))-1));
+          delay = ((EXTREMELY_INVERSE_K)/((currentRMS*currentRMS)-1));
           break;
       }
       PIT_Set(delay*PIT_Period, true);
