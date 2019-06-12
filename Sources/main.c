@@ -41,6 +41,7 @@
 #include "packet.h"
 #include "Flash.h"
 #include "PIT.h"
+#include "RTC.h"
 #include "LEDs.h"
 
 
@@ -61,6 +62,10 @@ bool StartupPackets(void);
 bool VersionPackets(void);
 bool TowerNumberPackets(void);
 bool TowerModePackets(void);
+bool TowerTimePackets(void);
+bool ProgramBytePackets(void);
+bool ReadBytePackets(void);
+
 
 // ----------------------------------------
 // Thread set up
@@ -80,6 +85,8 @@ OS_THREAD_STACK(UARTRXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(UARTTXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PITStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(RTCStack, THREAD_STACK_SIZE);
+
 
 
 // ----------------------------------------
@@ -253,7 +260,8 @@ int main(void)
   }
 
   while (OS_ThreadCreate(PITThread, NULL, &PITStack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //PIT Thread
-  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //Packet Handler Thread
+  while (OS_ThreadCreate(RTCThread, NULL, &RTCStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //RTC Thread
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //Packet Handler Thread
 
 
   PacketHandlerSemaphore = OS_SemaphoreCreate(0);
@@ -288,6 +296,19 @@ bool PacketHandler(void)
     case TOWER_MODE_COMMAND:
       actionSuccess = TowerModePackets();
       break;
+
+    case SET_TIME_COMMAND:
+      actionSuccess = TowerTimePackets();
+      break;
+
+    case FLASH_PROGRAM_COMMAND:
+      actionSuccess = ProgramBytePackets();
+      break;
+
+    case FLASH_READ_COMMAND:
+      actionSuccess = ReadBytePackets();
+      break;
+
 
   }
 
@@ -331,6 +352,7 @@ bool TowerInit(void)
 //      return true; /* !< If successful initiation then return true */
 //    }
   }
+  RTC_Init(NULL, NULL);
   PIT_Init(MODULECLK, NULL , NULL);
   PIT_Set(PIT_Period ,true);
   return Packet_Init(BAUDRATE, MODULECLK);
@@ -411,6 +433,64 @@ bool VersionPackets(void)
   return Packet_Put(TOWER_VERSION_COMMAND,TOWER_VERSION_PARAMETER1,TOWER_VERSION_PARAMETER2, TOWER_VERSION_PARAMETER3);
 }
 
+/*! @brief Handles the packet to program bytes in FLASH
+ *
+ *  @return bool - TRUE if packet has been sent and handled successfully
+ *  @note Assumes that Packet_Init was called
+ */
+bool ProgramBytePackets(void)
+{
+  if (Packet_Parameter1 == 8)
+  {
+    return Flash_Erase(); /*! < if Parameter1  = 8 - erase the whole sector */
+  }
+  else if (Packet_Parameter1 > 8)
+  {
+    return false; //data sent is obsolete
+  }
+  else /*!< if offset (Parameter1) is between 0 and 7 inclusive, check the offset */
+  {
+    volatile uint8_t *address = (uint8_t *)(FLASH_DATA_START + Packet_Parameter1);
+    return Flash_Write8(address, Packet_Parameter3); //Write in the Flash
+  }
+  return false;
+}
+
+/*! @brief Handles the packet to read bytes from FLASH
+ *
+ *  @return bool - TRUE if packet has been sent and handled successfully
+ *  @note Assumes that Packet_Init was called
+ */
+bool ReadBytePackets(void)
+{
+  uint8_t readByte = _FB(FLASH_DATA_START + Packet_Parameter1); /* !< fetching the Byte at offset Parameter1 and send it to PCc*/
+  return Packet_Put(FLASH_READ_COMMAND, Packet_Parameter1, 0x0, readByte);
+}
+
+
+/*! @brief Handles the packet RTC time - sends back ther packet to PC if setting time is successful
+ *
+ *  @return bool - TRUE if packet has been sent and handled successfully
+ *  @note Assumes that Packet_Init and RTC_Init was called
+ */
+bool TowerTimePackets(void)
+{
+  /*!< Checking if input is valid, if not, return false */
+  if (Packet_Parameter1 <= 23)
+  {
+    if (Packet_Parameter2 <= 59)
+    {
+      if (Packet_Parameter3 <= 59)
+      {
+        /*!< sets the time with packet parameters given by PC */
+        RTC_Set(Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
+        /*!< returns the original packet to the PC if successful */
+        return Packet_Put(SET_TIME_COMMAND, Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
+      }
+    }
+  }
+  return false;
+}
 
 /*!
  ** @}
