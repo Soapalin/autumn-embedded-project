@@ -44,6 +44,7 @@
 #include "RTC.h"
 #include "LEDs.h"
 #include "FTM.h"
+#include "calculation.h"
 
 
 // Global variables and macro definitions
@@ -235,6 +236,10 @@ void AnalogLoopbackThread(void* pData)
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     // Get analog sample
     Analog_Get(analogData->channelNb, &analogInputValue);
+    Sliding_Voltage(analogInputValue);
+    float voltageRMS = Real_RMS();
+    float currentRMS = Current_RMS(voltageRMS);
+
     // Put analog sample
     Analog_Put(analogData->channelNb, analogInputValue);
 

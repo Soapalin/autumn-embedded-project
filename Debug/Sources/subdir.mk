@@ -11,6 +11,7 @@ C_SRCS += \
 ../Sources/PIT.c \
 ../Sources/RTC.c \
 ../Sources/UART.c \
+../Sources/calculation.c \
 ../Sources/main.c \
 ../Sources/packet.c 
 
@@ -22,6 +23,7 @@ OBJS += \
 ./Sources/PIT.o \
 ./Sources/RTC.o \
 ./Sources/UART.o \
+./Sources/calculation.o \
 ./Sources/main.o \
 ./Sources/packet.o 
 
@@ -33,6 +35,7 @@ C_DEPS += \
 ./Sources/PIT.d \
 ./Sources/RTC.d \
 ./Sources/UART.d \
+./Sources/calculation.d \
 ./Sources/main.d \
 ./Sources/packet.d 
 
