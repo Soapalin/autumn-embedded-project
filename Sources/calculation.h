@@ -23,14 +23,6 @@ typedef enum
 
 TCharacteristic Current_Charac;
 
-const float INVERSE_K = 0.14;
-const float INVERSE_ALPHA = 0.02;
-const float VERY_INVERSE_K = 13.5;
-const float VERY_INVERSE_ALPHA = 1;
-const float EXTREMELY_INVERSE_K = 80;
-const float EXTREMELY_INVERSE_ALPHA = 2;
-
-
 
 /*! @brief Keeps the 16 samples of voltages, voltages square and running total of the square
  *

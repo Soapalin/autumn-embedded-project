@@ -56,6 +56,13 @@ const uint8_t PACKET_ACK_MASK = 0x80; /*!< Packet Acknowledgment mask, referring
 static volatile uint16union_t *TowerNumber; /*!< declaring static TowerNumber Pointer */
 static volatile uint16union_t *TowerMode; /*!< declaring static TowerMode Pointer */
 
+const float INVERSE_K = 0.14;
+const float INVERSE_ALPHA = 0.02;
+const float VERY_INVERSE_K = 13.5;
+const float VERY_INVERSE_ALPHA = 1;
+const float EXTREMELY_INVERSE_K = 80;
+const float EXTREMELY_INVERSE_ALPHA = 2;
+
 TFTMChannel FTMPacket =
 {
   0, /*!< Channel being used */
