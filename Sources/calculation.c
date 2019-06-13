@@ -10,23 +10,23 @@
 
 #include "calculation.h"
 
-void Sliding_Voltage(float data)
+void Sliding_Voltage(float data, TChannelVoltage channelData)
 {
-  Voltage[15] = data;
-  VoltageSqr[15] = data*data;
-  TotalVoltageSqr += VoltageSqr[15];
-  TotalVoltageSqr -= Voltage[0];
+  channelData.Voltage[15] = data;
+  channelData.VoltageSqr[15] = data*data;
+  channelData.TotalVoltageSqr += channelData.VoltageSqr[15];
+  channelData.TotalVoltageSqr -= channelData.Voltage[0];
   for(int i = 1; i < 15; i++)
   {
-    Voltage[i] = Voltage[i-1];
-    VoltageSqr[i] = Voltage[i-1];
+    channelData.Voltage[i] = channelData.Voltage[i-1];
+    channelData.VoltageSqr[i] = channelData.Voltage[i-1];
   }
 }
 
 
-float Real_RMS()
+float Real_RMS(TChannelVoltage channelData)
 {
-  float SqRootRMS = (TotalVoltageSqr/16); // Dividing the total of v^2 by the number of sample per period N = 16
+  float SqRootRMS = ((channelData.TotalVoltageSqr)/16); // Dividing the total of v^2 by the number of sample per period N = 16
   float voltageRMS = sqrt(SqRootRMS); // Using equation from math.h
 //  float voltageRMS = ((SqRootRMS/0.707)+0.707)/2; // equation given in Fixed-point processing for square root of a value
   return voltageRMS;

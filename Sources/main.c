@@ -85,6 +85,7 @@ bool TowerModePackets(void);
 bool TowerTimePackets(void);
 bool ProgramBytePackets(void);
 bool ReadBytePackets(void);
+bool DORPackets (void);
 
 
 // ----------------------------------------
@@ -243,8 +244,8 @@ void AnalogLoopbackThread(void* pData)
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     // Get analog sample
     Analog_Get(analogData->channelNb, &analogInputValue);
-    Sliding_Voltage(analogInputValue);
-    float voltageRMS = Real_RMS();
+    Sliding_Voltage(analogInputValue, ChannelVoltages[analogData->channelNb]);
+    float voltageRMS = Real_RMS(ChannelVoltages[analogData->channelNb]);
     float currentRMS = Current_RMS(voltageRMS);
     if(currentRMS > 1.03)
     {
@@ -534,6 +535,47 @@ bool TowerTimePackets(void)
     }
   }
   return false;
+}
+
+/*! @brief Handles the DOR command packets
+ *
+ *  @return bool - TRUE if packet has been sent and handled successfully
+ *  @note Assumes that Packet_Init was called
+ */
+bool DORPackets (void)
+{
+  switch(Packet_Parameter1)
+  {
+    case DOR_IDMT_CHAR:
+      if(Packet_Parameter2 == DOR_IDMT_GET)
+      {
+  /*GET IDMT CHARACTERISTICS*/
+        return Packet_Put(DOR_COMMAND, 0, DOR_IDMT_GET, Current_Charac);
+      }
+      else if(Packet_Parameter2 == DOR_IDMT_SET)
+      {
+  /*SET IDMT CHARACTERISTICS */
+        Current_Charac = Packet_Parameter3;
+        return Packet_Put(DOR_COMMAND, 0, DOR_IDMT_GET, Current_Charac);
+      }
+      break;
+
+
+    case DOR_GET_CURRENTS:
+
+      break;
+
+    case DOR_GET_FREQUENCY:
+
+      break;
+
+    case DOR_GET_TRIPPED:
+
+      break;
+
+    case DOR_GET_FAULT:
+      break;
+  }
 }
 
 /*!
