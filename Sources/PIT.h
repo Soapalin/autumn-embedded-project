@@ -14,6 +14,8 @@
 // new types
 #include "types.h"
 
+uint16union_t Tripped;
+
 /*! @brief Sets up the PIT before first use.
  *
  *  Enables the PIT and freezes the timer when debugging.
@@ -30,15 +32,17 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
  *  @param period The desired value of the timer period in nanoseconds.
  *  @param restart TRUE if the PIT is disabled, a new value set, and then enabled.
  *                 FALSE if the PIT will use the new value after a trigger event.
+ *  @param channel - desired channel to manipulate
  *  @note The function will enable the timer and interrupts for the PIT.
  */
-void PIT_Set(const uint32_t period, const bool restart);
+void PIT_Set(const uint32_t period, const bool restart, uint8_t channel);
 
 /*! @brief Enables or disables the PIT.
  *
  *  @param enable - TRUE if the PIT is to be enabled, FALSE if the PIT is to be disabled.
+ *  @param channel - desired channel to manipulate
  */
-void PIT_Enable(const bool enable);
+void PIT_Enable(const bool enable, uint8_t channel);
 
 /*! @brief Interrupt service routine for the PIT.
  *
@@ -46,12 +50,19 @@ void PIT_Enable(const bool enable);
  *  The user callback function will be called.
  *  @note Assumes the PIT has been initialized.
  */
-void __attribute__ ((interrupt)) PIT_ISR(void);
+void __attribute__ ((interrupt)) PIT0_ISR(void);
+void __attribute__ ((interrupt)) PIT1_ISR(void);
+//void __attribute__ ((interrupt)) PIT2_ISR(void);
+//void __attribute__ ((interrupt)) PIT3_ISR(void);
+
 
 /*! @brief PIT Thread
  *
  *Every period, this function is triggered and values of the accelerometer is sent
  */
-void PITThread(void* pData);
+void PIT0Thread(void* pData);
+void PIT1Thread(void* pData);
 
+//void PIT2Thread(void* pData);
+//void PIT3Thread(void* pData);
 #endif

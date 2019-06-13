@@ -79,7 +79,7 @@ TFTMChannel FTMPacket =
 
 // Prototypes functions
 bool TowerInit(void);
-bool PacketHandler(void);
+void PacketHandler(void);
 bool StartupPackets(void);
 bool VersionPackets(void);
 bool TowerNumberPackets(void);
@@ -108,8 +108,9 @@ static uint32_t AnalogThreadStacks[NB_ANALOG_CHANNELS][THREAD_STACK_SIZE] __attr
 OS_THREAD_STACK(UARTRXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(UARTTXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(PITStack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(RTCStack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PIT0Stack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PIT1Stack, THREAD_STACK_SIZE);
+//OS_THREAD_STACK(RTCStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(FTMStack, THREAD_STACK_SIZE);
 
 
@@ -267,7 +268,7 @@ void AnalogLoopbackThread(void* pData)
           delay = ((EXTREMELY_INVERSE_K)/(pow((ChannelsData[analogData->channelNb].currentRMS), EXTREMELY_INVERSE_ALPHA)-1));
           break;
       }
-      PIT_Set(delay*PIT_Period, true);
+      PIT_Set(delay*PIT_Period, true, analogData->channelNb);
 
     }
     // Put analog sample
@@ -308,10 +309,11 @@ int main(void)
                             ANALOG_THREAD_PRIORITIES[threadNb]);
   }
 
-  while (OS_ThreadCreate(PITThread, NULL, &PITStack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //PIT Thread
-  while (OS_ThreadCreate(RTCThread, NULL, &RTCStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //RTC Thread
-  while (OS_ThreadCreate(FTMThread, NULL, &FTMStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //FTM Thread
-  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 8) != OS_NO_ERROR); //Packet Handler Thread
+  while (OS_ThreadCreate(PIT0Thread, NULL, &PIT0Stack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //PIT Thread
+  while (OS_ThreadCreate(PIT1Thread, NULL, &PIT1Stack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //PIT Thread
+//  while (OS_ThreadCreate(RTCThread, NULL, &RTCStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //RTC Thread
+  while (OS_ThreadCreate(FTMThread, NULL, &FTMStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //FTM Thread
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //Packet Handler Thread
 
 
   PacketHandlerSemaphore = OS_SemaphoreCreate(0);
@@ -323,10 +325,9 @@ int main(void)
 
 /*! @brief Process the packet that has been received
  *
- *  @return bool - TRUE if the packet has been handled properly.
  *  @note Assumes that Packet_Init and Packet_Get was called
  */
-bool PacketHandler(void)
+void PacketHandler(void)
 { /*!<  Packet Handler used after Packet Get */
   bool actionSuccess;  /*!<  Acknowledge is false as long as the package isn't acknowledge or if it's not required */
   switch(Packet_Command & ~PACKET_ACK_MASK)
@@ -359,6 +360,10 @@ bool PacketHandler(void)
       actionSuccess = ReadBytePackets();
       break;
 
+    case DOR_COMMAND:
+      actionSuccess = DORPackets();
+      break;
+
 
   }
 
@@ -373,6 +378,7 @@ bool PacketHandler(void)
       Packet_Put((Packet_Command |=PACKET_ACK_MASK),Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
     }
   }
+
 }
 
 /*! @brief saves in Flash the TowerNumber and the TowerMode
@@ -399,7 +405,7 @@ bool TowerInit(void)
       Flash_Write16((volatile uint16_t *) TowerNumber, STUDENT_ID); /*Like above, but with towerNumber set to our student ID = 7533*/
     }
   }
-  RTC_Init(NULL, NULL);
+//  RTC_Init(NULL, NULL);
   PIT_Init(MODULECLK, NULL , NULL);
   FTM_Init();
   FTM_Set(&FTMPacket); /*!< configure FTM0 functionality, passing in the declared struct address containing values at top of file */
@@ -553,13 +559,13 @@ bool DORPackets (void)
       if(Packet_Parameter2 == DOR_IDMT_GET)
       {
   /*GET IDMT CHARACTERISTICS*/
-        return Packet_Put(DOR_COMMAND, 0, DOR_IDMT_GET, Current_Charac);
+        return Packet_Put(DOR_COMMAND, DOR_IDMT_CHAR, DOR_IDMT_GET, Current_Charac);
       }
       else if(Packet_Parameter2 == DOR_IDMT_SET)
       {
   /*SET IDMT CHARACTERISTICS */
         Current_Charac = Packet_Parameter3;
-        return Packet_Put(DOR_COMMAND, 0, DOR_IDMT_GET, Current_Charac);
+        return Packet_Put(DOR_COMMAND, DOR_IDMT_CHAR, DOR_IDMT_GET, Current_Charac);
       }
       break;
 
@@ -579,7 +585,7 @@ bool DORPackets (void)
       break;
 
     case DOR_GET_TRIPPED:
-
+      Packet_Put(DOR_COMMAND, DOR_GET_TRIPPED, Tripped.s.Lo, Tripped.s.Hi);
       break;
 
     case DOR_GET_FAULT:
