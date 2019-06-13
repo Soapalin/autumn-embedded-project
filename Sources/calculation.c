@@ -10,7 +10,7 @@
 
 #include "calculation.h"
 
-void Sliding_Voltage(float data, TChannelVoltage channelData)
+void Sliding_Voltage(float data, TChannelData channelData)
 {
   channelData.Voltage[15] = data;
   channelData.VoltageSqr[15] = data*data;
@@ -24,7 +24,7 @@ void Sliding_Voltage(float data, TChannelVoltage channelData)
 }
 
 
-float Real_RMS(TChannelVoltage channelData)
+float Real_RMS(TChannelData channelData)
 {
   float SqRootRMS = ((channelData.TotalVoltageSqr)/16); // Dividing the total of v^2 by the number of sample per period N = 16
   float voltageRMS = sqrt(SqRootRMS); // Using equation from math.h

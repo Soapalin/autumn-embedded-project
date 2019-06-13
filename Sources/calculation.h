@@ -14,9 +14,10 @@ typedef struct
 {
   float Voltage[16];
   float VoltageSqr[16];
-  float VoltageRMS;
   float TotalVoltageSqr;
-}TChannelVoltage;
+  float voltageRMS;
+  float currentRMS;
+}TChannelData;
 
 
 typedef enum
@@ -27,7 +28,6 @@ typedef enum
 }TCharacteristic;
 
 TCharacteristic Current_Charac; // Keepint track of the current mode INVERSE, VERY INVERSE, EXTREMELY INVERSE
-TChannelVoltage ChannelVoltages[NB_ANALOG_CHANNELS]; // keeping track of voltages of each channel independently
 
 
 /*! @brief Keeps the 16 samples of voltages, voltages square and running total of the square
@@ -35,7 +35,7 @@ TChannelVoltage ChannelVoltages[NB_ANALOG_CHANNELS]; // keeping track of voltage
  * @param data - newest sample taken by uC
  * @param channelData - tracking of indepedent voltages for each channel
  */
-void Sliding_Voltage(float data,TChannelVoltage channelData);
+void Sliding_Voltage(float data,TChannelData channelData);
 
 /*! @brief Returns the voltage RMS, calculated from global variable TotalVoltageSqr
  *
@@ -43,7 +43,7 @@ void Sliding_Voltage(float data,TChannelVoltage channelData);
  *
  *  @return float - value of voltage RMS
  */
-float Real_RMS(TChannelVoltage channelData);
+float Real_RMS(TChannelData channelData);
 
 /*! @brief Converts voltage RMS to current RMS
  *

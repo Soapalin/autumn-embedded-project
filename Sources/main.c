@@ -63,6 +63,8 @@ const float VERY_INVERSE_ALPHA = 1;
 const float EXTREMELY_INVERSE_K = 80;
 const float EXTREMELY_INVERSE_ALPHA = 2;
 
+
+
 TFTMChannel FTMPacket =
 {
   0, /*!< Channel being used */
@@ -97,7 +99,8 @@ bool DORPackets (void);
 
 OS_ECB* PacketHandlerSemaphore; //Declare a semaphore, to be signaled.
 
-
+TChannelData ChannelsData[NB_ANALOG_CHANNELS]; // keeping track of voltages of each channel independently
+TFloat ChannelCurrents[NB_ANALOG_CHANNELS];
 
 // Thread stacks
 OS_THREAD_STACK(InitModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the LED Init thread. */
@@ -244,24 +247,24 @@ void AnalogLoopbackThread(void* pData)
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     // Get analog sample
     Analog_Get(analogData->channelNb, &analogInputValue);
-    Sliding_Voltage(analogInputValue, ChannelVoltages[analogData->channelNb]);
-    float voltageRMS = Real_RMS(ChannelVoltages[analogData->channelNb]);
-    float currentRMS = Current_RMS(voltageRMS);
-    if(currentRMS > 1.03)
+    Sliding_Voltage(analogInputValue, ChannelsData[analogData->channelNb]);
+    ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(ChannelsData[analogData->channelNb]);
+    ChannelsData[analogData->channelNb].currentRMS =   Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
+    if(ChannelsData[analogData->channelNb].currentRMS > 1.03)
     {
       float delay;
       switch(Current_Charac)
       {
         case INVERSE:
-          delay = ((INVERSE_K)/((pow(currentRMS,(INVERSE_ALPHA)))-1));
+          delay = ((INVERSE_K)/((pow((ChannelsData[analogData->channelNb].currentRMS),(INVERSE_ALPHA)))-1));
           break;
 
         case VERY_INVERSE:
-          delay = ((VERY_INVERSE_K)/(currentRMS-1));
+          delay = ((VERY_INVERSE_K)/((ChannelsData[analogData->channelNb].currentRMS)-1));
           break;
 
         case EXTREMELY_INVERSE:
-          delay = ((EXTREMELY_INVERSE_K)/((currentRMS*currentRMS)-1));
+          delay = ((EXTREMELY_INVERSE_K)/(pow((ChannelsData[analogData->channelNb].currentRMS), EXTREMELY_INVERSE_ALPHA)-1));
           break;
       }
       PIT_Set(delay*PIT_Period, true);
@@ -562,7 +565,13 @@ bool DORPackets (void)
 
 
     case DOR_GET_CURRENTS:
+      ChannelCurrents[0] = (TFloat) ChannelsData[0].currentRMS;
+      ChannelCurrents[1] = (TFloat) ChannelsData[1].currentRMS;
+//      ChannelCurrents[2] = (TFloat) ChannelsData[2].currentRMS;
 
+      Packet_Put(DOR_COMMAND, 0, ChannelCurrents[0].dParts.dLo.s.Lo, ChannelCurrents[0].dParts.dLo.s.Hi);
+      Packet_Put(DOR_COMMAND, 1, ChannelCurrents[1].dParts.dLo.s.Lo, ChannelCurrents[1].dParts.dLo.s.Hi);
+//      Packet_Put(DOR_COMMAND, 1, ChannelCurrents[2].dParts.dLo.s.Lo, ChannelCurrents[2].dParts.dLo.s.Hi);
       break;
 
     case DOR_GET_FREQUENCY:
