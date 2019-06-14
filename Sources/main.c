@@ -35,7 +35,6 @@
 // Analog functions
 #include "analog.h"
 
-
 // Modules
 #include "UART.h"
 #include "packet.h"
@@ -245,15 +244,15 @@ void AnalogLoopbackThread(void* pData)
   for (;;)
   {
     int16_t analogInputValue;
+    static int16_t oldCurrent;
 
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     // Get analog sample
-//    OS_DisableInterrupts();
     Analog_Get(analogData->channelNb, &analogInputValue);
-    Sliding_Voltage(analogInputValue, ChannelsData[analogData->channelNb]);
-    ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(ChannelsData[analogData->channelNb]);
-    ChannelsData[analogData->channelNb].currentRMS =   Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
-    if(ChannelsData[analogData->channelNb].currentRMS > 1.03)
+    Sliding_Voltage(analogInputValue, &ChannelsData[analogData->channelNb]);
+    ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]);
+    ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
+    if(ChannelsData[analogData->channelNb].currentRMS > 1.03 && (oldCurrent != (int16_t) ChannelsData[analogData->channelNb].currentRMS))
     {
       float delay;
       switch(Current_Charac)
@@ -270,9 +269,9 @@ void AnalogLoopbackThread(void* pData)
           delay = ((EXTREMELY_INVERSE_K)/(pow((ChannelsData[analogData->channelNb].currentRMS), EXTREMELY_INVERSE_ALPHA)-1));
           break;
       }
+      oldCurrent = (int16_t) ChannelsData[analogData->channelNb].currentRMS;
       PIT_Set(delay*PIT_Period, true, analogData->channelNb);
     }
-//    OS_EnableInterrupts();
     // Put analog sample
 //    Analog_Put(analogData->channelNb, analogInputValue);
 
@@ -594,6 +593,7 @@ bool DORPackets (void)
       break;
   }
 }
+
 
 /*!
  ** @}

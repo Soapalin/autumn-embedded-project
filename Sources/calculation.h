@@ -35,7 +35,7 @@ TCharacteristic Current_Charac; // Keepint track of the current mode INVERSE, VE
  * @param data - newest sample taken by uC
  * @param channelData - tracking of indepedent voltages for each channel
  */
-void Sliding_Voltage(float data,TChannelData channelData);
+void Sliding_Voltage(float data,TChannelData* channelData);
 
 /*! @brief Returns the voltage RMS, calculated from global variable TotalVoltageSqr
  *
@@ -43,7 +43,7 @@ void Sliding_Voltage(float data,TChannelData channelData);
  *
  *  @return float - value of voltage RMS
  */
-float Real_RMS(TChannelData channelData);
+float Real_RMS(TChannelData* channelData);
 
 /*! @brief Converts voltage RMS to current RMS
  *
@@ -51,4 +51,4 @@ float Real_RMS(TChannelData channelData);
  */
 float Current_RMS(float voltageRMS);
 
-
+//
