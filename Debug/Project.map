@@ -1371,7 +1371,7 @@ LOAD c:/software/freescale/kds_3.0.0/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.
                 0x0000089e       0x22 c:/software/freescale/kds_3.0.0/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtn.o
 OUTPUT(Project.elf elf32-littlearm)
 
-.debug_info     0x00000000     0x6f3f
+.debug_info     0x00000000     0x6f3b
  .debug_info    0x00000000      0x227 ./Sources/FIFO.o
  .debug_info    0x00000227      0x849 ./Sources/FTM.o
  .debug_info    0x00000a70      0x6c8 ./Sources/Flash.o
@@ -1380,16 +1380,16 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_info    0x00001cd6      0x721 ./Sources/RTC.o
  .debug_info    0x000023f7      0xa49 ./Sources/UART.o
  .debug_info    0x00002e40      0x1de ./Sources/calculation.o
- .debug_info    0x0000301e      0xd7a ./Sources/main.o
- .debug_info    0x00003d98      0x318 ./Sources/packet.o
- .debug_info    0x000040b0      0x3b0 ./Project_Settings/Startup_Code/startup.o
- .debug_info    0x00004460      0xc82 ./Generated_Code/Cpu.o
- .debug_info    0x000050e2      0x191 ./Generated_Code/Vectors.o
- .debug_info    0x00005273      0xd02 C:\Users\12878930\Documents\autumn-embedded-project\Library\libOS.a(OS.o)
- .debug_info    0x00005f75      0x56a C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(analog.o)
- .debug_info    0x000064df      0xa60 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+ .debug_info    0x0000301e      0xd76 ./Sources/main.o
+ .debug_info    0x00003d94      0x318 ./Sources/packet.o
+ .debug_info    0x000040ac      0x3b0 ./Project_Settings/Startup_Code/startup.o
+ .debug_info    0x0000445c      0xc82 ./Generated_Code/Cpu.o
+ .debug_info    0x000050de      0x191 ./Generated_Code/Vectors.o
+ .debug_info    0x0000526f      0xd02 C:\Users\12878930\Documents\autumn-embedded-project\Library\libOS.a(OS.o)
+ .debug_info    0x00005f71      0x56a C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(analog.o)
+ .debug_info    0x000064db      0xa60 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
-.debug_abbrev   0x00000000     0x19fa
+.debug_abbrev   0x00000000     0x1a01
  .debug_abbrev  0x00000000       0xd7 ./Sources/FIFO.o
  .debug_abbrev  0x000000d7      0x1e0 ./Sources/FTM.o
  .debug_abbrev  0x000002b7      0x1fa ./Sources/Flash.o
@@ -1398,14 +1398,14 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_abbrev  0x000007de      0x1be ./Sources/RTC.o
  .debug_abbrev  0x0000099c      0x200 ./Sources/UART.o
  .debug_abbrev  0x00000b9c       0xfb ./Sources/calculation.o
- .debug_abbrev  0x00000c97      0x264 ./Sources/main.o
- .debug_abbrev  0x00000efb       0xf0 ./Sources/packet.o
- .debug_abbrev  0x00000feb      0x189 ./Project_Settings/Startup_Code/startup.o
- .debug_abbrev  0x00001174      0x185 ./Generated_Code/Cpu.o
- .debug_abbrev  0x000012f9       0xda ./Generated_Code/Vectors.o
- .debug_abbrev  0x000013d3      0x2f8 C:\Users\12878930\Documents\autumn-embedded-project\Library\libOS.a(OS.o)
- .debug_abbrev  0x000016cb      0x15a C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(analog.o)
- .debug_abbrev  0x00001825      0x1d5 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+ .debug_abbrev  0x00000c97      0x26b ./Sources/main.o
+ .debug_abbrev  0x00000f02       0xf0 ./Sources/packet.o
+ .debug_abbrev  0x00000ff2      0x189 ./Project_Settings/Startup_Code/startup.o
+ .debug_abbrev  0x0000117b      0x185 ./Generated_Code/Cpu.o
+ .debug_abbrev  0x00001300       0xda ./Generated_Code/Vectors.o
+ .debug_abbrev  0x000013da      0x2f8 C:\Users\12878930\Documents\autumn-embedded-project\Library\libOS.a(OS.o)
+ .debug_abbrev  0x000016d2      0x15a C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(analog.o)
+ .debug_abbrev  0x0000182c      0x1d5 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
 .debug_aranges  0x00000000      0x4e8
  .debug_aranges
@@ -1441,7 +1441,7 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_aranges
                 0x00000490       0x58 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
-.debug_ranges   0x00000000      0x3e0
+.debug_ranges   0x00000000      0x3f8
  .debug_ranges  0x00000000       0x20 ./Sources/FIFO.o
  .debug_ranges  0x00000020       0x30 ./Sources/FTM.o
  .debug_ranges  0x00000050       0x58 ./Sources/Flash.o
@@ -1450,13 +1450,13 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_ranges  0x00000110       0x30 ./Sources/RTC.o
  .debug_ranges  0x00000140       0x40 ./Sources/UART.o
  .debug_ranges  0x00000180       0x20 ./Sources/calculation.o
- .debug_ranges  0x000001a0       0x88 ./Sources/main.o
- .debug_ranges  0x00000228       0x28 ./Sources/packet.o
- .debug_ranges  0x00000250       0x40 ./Project_Settings/Startup_Code/startup.o
- .debug_ranges  0x00000290       0x28 ./Generated_Code/Cpu.o
- .debug_ranges  0x000002b8       0xb8 C:\Users\12878930\Documents\autumn-embedded-project\Library\libOS.a(OS.o)
- .debug_ranges  0x00000370       0x28 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(analog.o)
- .debug_ranges  0x00000398       0x48 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+ .debug_ranges  0x000001a0       0xa0 ./Sources/main.o
+ .debug_ranges  0x00000240       0x28 ./Sources/packet.o
+ .debug_ranges  0x00000268       0x40 ./Project_Settings/Startup_Code/startup.o
+ .debug_ranges  0x000002a8       0x28 ./Generated_Code/Cpu.o
+ .debug_ranges  0x000002d0       0xb8 C:\Users\12878930\Documents\autumn-embedded-project\Library\libOS.a(OS.o)
+ .debug_ranges  0x00000388       0x28 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(analog.o)
+ .debug_ranges  0x000003b0       0x48 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
 .debug_macro    0x00000000    0x358c6
  .debug_macro   0x00000000       0xb1 ./Sources/FIFO.o
@@ -1515,7 +1515,7 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_macro   0x00035848       0x16 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(analog.o)
  .debug_macro   0x0003585e       0x68 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
-.debug_line     0x00000000     0x3513
+.debug_line     0x00000000     0x3516
  .debug_line    0x00000000      0x30f ./Sources/FIFO.o
  .debug_line    0x0000030f      0x360 ./Sources/FTM.o
  .debug_line    0x0000066f      0x34d ./Sources/Flash.o
@@ -1524,14 +1524,14 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_line    0x00000f8a      0x2f7 ./Sources/RTC.o
  .debug_line    0x00001281      0x38f ./Sources/UART.o
  .debug_line    0x00001610      0x2c1 ./Sources/calculation.o
- .debug_line    0x000018d1      0x5e2 ./Sources/main.o
- .debug_line    0x00001eb3      0x341 ./Sources/packet.o
- .debug_line    0x000021f4      0x415 ./Project_Settings/Startup_Code/startup.o
- .debug_line    0x00002609      0x2a9 ./Generated_Code/Cpu.o
- .debug_line    0x000028b2      0x2e0 ./Generated_Code/Vectors.o
- .debug_line    0x00002b92      0x496 C:\Users\12878930\Documents\autumn-embedded-project\Library\libOS.a(OS.o)
- .debug_line    0x00003028      0x218 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(analog.o)
- .debug_line    0x00003240      0x2d3 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+ .debug_line    0x000018d1      0x5e5 ./Sources/main.o
+ .debug_line    0x00001eb6      0x341 ./Sources/packet.o
+ .debug_line    0x000021f7      0x415 ./Project_Settings/Startup_Code/startup.o
+ .debug_line    0x0000260c      0x2a9 ./Generated_Code/Cpu.o
+ .debug_line    0x000028b5      0x2e0 ./Generated_Code/Vectors.o
+ .debug_line    0x00002b95      0x496 C:\Users\12878930\Documents\autumn-embedded-project\Library\libOS.a(OS.o)
+ .debug_line    0x0000302b      0x218 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(analog.o)
+ .debug_line    0x00003243      0x2d3 C:\Users\12878930\Documents\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
 .debug_str      0x00000000    0x8f96d
  .debug_str     0x00000000    0x8a712 ./Sources/FIFO.o

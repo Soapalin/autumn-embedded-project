@@ -248,7 +248,7 @@ void AnalogLoopbackThread(void* pData)
 
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     // Get analog sample
-    OS_DisableInterrupts();
+//    OS_DisableInterrupts();
     Analog_Get(analogData->channelNb, &analogInputValue);
     Sliding_Voltage(analogInputValue, ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(ChannelsData[analogData->channelNb]);
@@ -272,7 +272,7 @@ void AnalogLoopbackThread(void* pData)
       }
       PIT_Set(delay*PIT_Period, true, analogData->channelNb);
     }
-    OS_EnableInterrupts();
+//    OS_EnableInterrupts();
     // Put analog sample
 //    Analog_Put(analogData->channelNb, analogInputValue);
 
