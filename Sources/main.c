@@ -111,7 +111,7 @@ OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PIT0Stack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PIT1Stack, THREAD_STACK_SIZE);
 //OS_THREAD_STACK(RTCStack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(FTMStack, THREAD_STACK_SIZE);
+//OS_THREAD_STACK(FTMStack, THREAD_STACK_SIZE);
 
 
 // ----------------------------------------
@@ -156,8 +156,8 @@ void PacketHandlerThread(void* pData)
   {
     if (Packet_Get())
     {
-      FTM_StartTimer(&FTMPacket); /*!< Start timer, calling interrupt User function (FTM0Callback) once completed.  */
-      LEDs_On(LED_BLUE);
+//      FTM_StartTimer(&FTMPacket); /*!< Start timer, calling interrupt User function (FTM0Callback) once completed.  */
+//      LEDs_On(LED_BLUE);
       PacketHandler(); /*!<  When a complete packet is finally formed, handle the packet accordingly */
     }
   }
@@ -226,6 +226,7 @@ static void InitModulesThread(void* pData)
   // Initialise the low power timer to tick every 10 ms
   LPTMRInit(10);
   TowerInit();
+  Current_Charac = INVERSE; // Set the default mode to inverse
   while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
 
   // We only do this once - therefore delete this thread
@@ -247,6 +248,7 @@ void AnalogLoopbackThread(void* pData)
 
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     // Get analog sample
+    OS_DisableInterrupts();
     Analog_Get(analogData->channelNb, &analogInputValue);
     Sliding_Voltage(analogInputValue, ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(ChannelsData[analogData->channelNb]);
@@ -269,8 +271,8 @@ void AnalogLoopbackThread(void* pData)
           break;
       }
       PIT_Set(delay*PIT_Period, true, analogData->channelNb);
-
     }
+    OS_EnableInterrupts();
     // Put analog sample
 //    Analog_Put(analogData->channelNb, analogInputValue);
 
@@ -310,10 +312,10 @@ int main(void)
   }
 
   while (OS_ThreadCreate(PIT0Thread, NULL, &PIT0Stack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //PIT Thread
-  while (OS_ThreadCreate(PIT1Thread, NULL, &PIT1Stack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //PIT Thread
+  while (OS_ThreadCreate(PIT1Thread, NULL, &PIT1Stack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //PIT Thread
 //  while (OS_ThreadCreate(RTCThread, NULL, &RTCStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //RTC Thread
-  while (OS_ThreadCreate(FTMThread, NULL, &FTMStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //FTM Thread
-  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //Packet Handler Thread
+//  while (OS_ThreadCreate(FTMThread, NULL, &FTMStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //FTM Thread
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 8) != OS_NO_ERROR); //Packet Handler Thread
 
 
   PacketHandlerSemaphore = OS_SemaphoreCreate(0);

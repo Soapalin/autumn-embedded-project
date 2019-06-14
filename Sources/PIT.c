@@ -226,7 +226,7 @@ void PIT1Thread(void* pData)
 
     OS_SemaphoreWait(PIT1Semaphore, 0);
     //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
-    Analog_Put(0, 5); // Swith on circuit breaker
+    Analog_Put(1, 5); // Swith on circuit breaker
     Tripped.l++;
   }
 }
