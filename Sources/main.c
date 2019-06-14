@@ -163,7 +163,7 @@ void PacketHandlerThread(void* pData)
 }
 
 
-void LPTMRInit(const uint16_t count)
+void LPTMRInit(const float count)
 {
   // Enable clock gate to LPTMR module
   SIM_SCGC5 |= SIM_SCGC5_LPTIMER_MASK;
@@ -223,7 +223,7 @@ static void InitModulesThread(void* pData)
     AnalogThreadData[analogNb].semaphore = OS_SemaphoreCreate(0);
 
   // Initialise the low power timer to tick every 10 ms
-  LPTMRInit(10);
+  LPTMRInit(1.25);
   TowerInit();
   Current_Charac = INVERSE; // Set the default mode to inverse
   while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
@@ -244,33 +244,40 @@ void AnalogLoopbackThread(void* pData)
   for (;;)
   {
     int16_t analogInputValue;
-    static int16_t oldCurrent;
+    static int32_t oldCurrent;
 
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     // Get analog sample
+//    OS_DisableInterrupts();
     Analog_Get(analogData->channelNb, &analogInputValue);
     Sliding_Voltage(analogInputValue, &ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
-    if(ChannelsData[analogData->channelNb].currentRMS > 1.03 && (oldCurrent != (int16_t) ChannelsData[analogData->channelNb].currentRMS))
+    if(ChannelsData[analogData->channelNb].currentRMS > 1.03 && (oldCurrent != (int32_t) ChannelsData[analogData->channelNb].currentRMS))
     {
+      static uint64_t times;
+      times++;
       float delay;
       switch(Current_Charac)
       {
         case INVERSE:
-          delay = ((INVERSE_K)/((pow((ChannelsData[analogData->channelNb].currentRMS),(INVERSE_ALPHA)))-1));
+          delay = 1;
+//          delay = ((INVERSE_K)/((pow((ChannelsData[analogData->channelNb].currentRMS),(INVERSE_ALPHA)))-1));
           break;
 
         case VERY_INVERSE:
-          delay = ((VERY_INVERSE_K)/((ChannelsData[analogData->channelNb].currentRMS)-1));
+          delay = 1;
+//          delay = ((VERY_INVERSE_K)/((ChannelsData[analogData->channelNb].currentRMS)-1));
           break;
 
         case EXTREMELY_INVERSE:
-          delay = ((EXTREMELY_INVERSE_K)/(pow((ChannelsData[analogData->channelNb].currentRMS), EXTREMELY_INVERSE_ALPHA)-1));
+          delay = 1;
+//          delay = ((EXTREMELY_INVERSE_K)/(pow((ChannelsData[analogData->channelNb].currentRMS), EXTREMELY_INVERSE_ALPHA)-1));
           break;
       }
-      oldCurrent = (int16_t) ChannelsData[analogData->channelNb].currentRMS;
+      oldCurrent = (int32_t) ChannelsData[analogData->channelNb].currentRMS;
       PIT_Set(delay*PIT_Period, true, analogData->channelNb);
+//      OS_EnableInterrupts();
     }
     // Put analog sample
 //    Analog_Put(analogData->channelNb, analogInputValue);
@@ -314,7 +321,7 @@ int main(void)
   while (OS_ThreadCreate(PIT1Thread, NULL, &PIT1Stack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //PIT Thread
 //  while (OS_ThreadCreate(RTCThread, NULL, &RTCStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //RTC Thread
 //  while (OS_ThreadCreate(FTMThread, NULL, &FTMStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //FTM Thread
-  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 8) != OS_NO_ERROR); //Packet Handler Thread
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //Packet Handler Thread
 
 
   PacketHandlerSemaphore = OS_SemaphoreCreate(0);
@@ -575,10 +582,10 @@ bool DORPackets (void)
       ChannelCurrents[0] = (TFloat) ChannelsData[0].currentRMS;
       ChannelCurrents[1] = (TFloat) ChannelsData[1].currentRMS;
 //      ChannelCurrents[2] = (TFloat) ChannelsData[2].currentRMS;
-
       Packet_Put(DOR_COMMAND, 0, ChannelCurrents[0].dParts.dLo.s.Lo, ChannelCurrents[0].dParts.dLo.s.Hi);
       Packet_Put(DOR_COMMAND, 1, ChannelCurrents[1].dParts.dLo.s.Lo, ChannelCurrents[1].dParts.dLo.s.Hi);
 //      Packet_Put(DOR_COMMAND, 1, ChannelCurrents[2].dParts.dLo.s.Lo, ChannelCurrents[2].dParts.dLo.s.Hi);
+
       break;
 
     case DOR_GET_FREQUENCY:
