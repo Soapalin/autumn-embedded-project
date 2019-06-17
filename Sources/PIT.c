@@ -20,6 +20,8 @@
 #include "OS.h"
 #include "packet.h"
 #include "analog.h"
+#include "calculation.h"
+#include "Flash.h"
 
 static uint32_t PIT_ModuleClk;
 static void *PITArguments;
@@ -214,8 +216,11 @@ void PIT0Thread(void* pData)
 
     OS_SemaphoreWait(PIT0Semaphore, 0);
     //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
-    Analog_Put(0, 5); // Swith on circuit breaker
-    Tripped.l++;
+    Analog_Put(0, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
+    OS_DisableInterrupts();
+    numberTripped.l++;
+//    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
+    OS_EnableInterrupts();
   }
 }
 
@@ -226,8 +231,12 @@ void PIT1Thread(void* pData)
 
     OS_SemaphoreWait(PIT1Semaphore, 0);
     //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
-    Analog_Put(1, 5); // Swith on circuit breaker
-    Tripped.l++;
+    Analog_Put(1, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
+
+    OS_DisableInterrupts();
+    numberTripped.l++;
+//    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
+    OS_EnableInterrupts();
   }
 }
 //

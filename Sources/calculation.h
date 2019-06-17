@@ -19,7 +19,9 @@ typedef struct
   float currentRMS;
 }TChannelData;
 
-
+#define ADC_RATE            3276.7
+#define ANALOG_TO_VOLT(X)   (float) X / (float) ADC_RATE
+#define VOLT_TO_ANALOG(X)   (uint16_t) (float) X * (float) ADC_RATE
 typedef enum
 {
   INVERSE,

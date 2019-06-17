@@ -215,6 +215,7 @@ void __attribute__ ((interrupt)) LPTimer_ISR(void)
  */
 static void InitModulesThread(void* pData)
 {
+  OS_DisableInterrupts();
   // Analog
   (void)Analog_Init(CPU_BUS_CLK_HZ);
 
@@ -226,6 +227,7 @@ static void InitModulesThread(void* pData)
   LPTMRInit(1.25);
   TowerInit();
   Current_Charac = INVERSE; // Set the default mode to inverse
+  OS_EnableInterrupts();
   while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
 
   // We only do this once - therefore delete this thread
@@ -248,37 +250,34 @@ void AnalogLoopbackThread(void* pData)
 
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     // Get analog sample
-//    OS_DisableInterrupts();
+    OS_DisableInterrupts();
     Analog_Get(analogData->channelNb, &analogInputValue);
-    Sliding_Voltage(analogInputValue, &ChannelsData[analogData->channelNb]);
+    Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
     if(ChannelsData[analogData->channelNb].currentRMS > 1.03 && (oldCurrent != (int32_t) ChannelsData[analogData->channelNb].currentRMS))
     {
-      static uint64_t times;
-      times++;
       float delay;
       switch(Current_Charac)
       {
         case INVERSE:
-          delay = 1;
-//          delay = ((INVERSE_K)/((pow((ChannelsData[analogData->channelNb].currentRMS),(INVERSE_ALPHA)))-1));
+          delay = ((INVERSE_K)/((pow((ChannelsData[analogData->channelNb].currentRMS),(INVERSE_ALPHA)))-1));
           break;
 
         case VERY_INVERSE:
-          delay = 1;
-//          delay = ((VERY_INVERSE_K)/((ChannelsData[analogData->channelNb].currentRMS)-1));
+          delay = ((VERY_INVERSE_K)/((ChannelsData[analogData->channelNb].currentRMS)-1));
           break;
 
         case EXTREMELY_INVERSE:
-          delay = 1;
-//          delay = ((EXTREMELY_INVERSE_K)/(pow((ChannelsData[analogData->channelNb].currentRMS), EXTREMELY_INVERSE_ALPHA)-1));
+          delay = ((EXTREMELY_INVERSE_K)/(pow((ChannelsData[analogData->channelNb].currentRMS), EXTREMELY_INVERSE_ALPHA)-1));
           break;
       }
       oldCurrent = (int32_t) ChannelsData[analogData->channelNb].currentRMS;
       PIT_Set(delay*PIT_Period, true, analogData->channelNb);
-//      OS_EnableInterrupts();
+      OS_EnableInterrupts();
     }
+    else if(ChannelsData[analogData->channelNb].currentRMS < 1.03)
+      Analog_Put(analogData->channelNb, 0);
     // Put analog sample
 //    Analog_Put(analogData->channelNb, analogInputValue);
 
@@ -401,8 +400,9 @@ bool TowerInit(void)
   Flash_Init();
   bool towerModeInit = Flash_AllocateVar( (volatile void **) &TowerMode, sizeof(*TowerMode));
   bool towerNumberInit = Flash_AllocateVar((volatile void **) &TowerNumber, sizeof(*TowerNumber));
+  bool TrippedInit = Flash_AllocateVar((volatile void **) &Tripped, sizeof(*Tripped));
   LEDs_Init();
-  if(towerModeInit && towerNumberInit)
+  if(towerModeInit && towerNumberInit && TrippedInit)
   {
     if(TowerMode->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
     {
@@ -412,7 +412,14 @@ bool TowerInit(void)
     {
       Flash_Write16((volatile uint16_t *) TowerNumber, STUDENT_ID); /*Like above, but with towerNumber set to our student ID = 7533*/
     }
+//    if(Tripped->l == 0xffff)
+//    {
+//      Flash_Write16((volatile uint16_t *) Tripped, 0);
   }
+  if(Tripped->l != 0xffff)
+    numberTripped.l = _FH(FLASH_DATA_START + 4);
+  else
+    numberTripped.l = 0;
 //  RTC_Init(NULL, NULL);
   PIT_Init(MODULECLK, NULL , NULL);
   FTM_Init();
@@ -582,10 +589,9 @@ bool DORPackets (void)
       ChannelCurrents[0] = (TFloat) ChannelsData[0].currentRMS;
       ChannelCurrents[1] = (TFloat) ChannelsData[1].currentRMS;
 //      ChannelCurrents[2] = (TFloat) ChannelsData[2].currentRMS;
-      Packet_Put(DOR_COMMAND, 0, ChannelCurrents[0].dParts.dLo.s.Lo, ChannelCurrents[0].dParts.dLo.s.Hi);
-      Packet_Put(DOR_COMMAND, 1, ChannelCurrents[1].dParts.dLo.s.Lo, ChannelCurrents[1].dParts.dLo.s.Hi);
+      Packet_Put(DOR_COMMAND, 0, ChannelCurrents[0].dParts.dLo.s.Hi, (int8_t) ChannelCurrents[0].d);
+      Packet_Put(DOR_COMMAND, 1, ChannelCurrents[1].dParts.dLo.s.Hi, (int8_t) ChannelCurrents[1].d);
 //      Packet_Put(DOR_COMMAND, 1, ChannelCurrents[2].dParts.dLo.s.Lo, ChannelCurrents[2].dParts.dLo.s.Hi);
-
       break;
 
     case DOR_GET_FREQUENCY:
@@ -593,7 +599,7 @@ bool DORPackets (void)
       break;
 
     case DOR_GET_TRIPPED:
-      Packet_Put(DOR_COMMAND, DOR_GET_TRIPPED, Tripped.s.Lo, Tripped.s.Hi);
+      Packet_Put(DOR_COMMAND, DOR_GET_TRIPPED,   numberTripped.s.Lo,   numberTripped.s.Hi);
       break;
 
     case DOR_GET_FAULT:
