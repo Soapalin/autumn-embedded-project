@@ -45,15 +45,15 @@
 #include "FTM.h"
 #include "calculation.h"
 
-
 // Global variables and macro definitions
 const uint32_t BAUDRATE = 115200; /*!< Baud Rate specified in project */
 const uint32_t MODULECLK = CPU_BUS_CLK_HZ; /*!< Clock Speed referenced from Cpu.H */
 const uint16_t STUDENT_ID = 0x22E2; /*!< Student Number: 7533 */
-const uint32_t PIT_Period = 1000000000; /*!< 1 second in nano */
 const uint8_t PACKET_ACK_MASK = 0x80; /*!< Packet Acknowledgment mask, referring to bit 7 of the Packet */
 static volatile uint16union_t *TowerNumber; /*!< declaring static TowerNumber Pointer */
 static volatile uint16union_t *TowerMode; /*!< declaring static TowerMode Pointer */
+const uint32_t PIT_Period = 1000000000; /*!< 1 second in nano */
+
 
 const float INVERSE_K = 0.14;
 const float INVERSE_ALPHA = 0.02;
@@ -94,7 +94,7 @@ bool DORPackets (void);
 // ----------------------------------------
 // Arbitrary thread stack size - big enough for stacking of interrupts and OS use.
 #define THREAD_STACK_SIZE 100
-#define NB_ANALOG_CHANNELS 2
+#define NB_ANALOG_CHANNELS 3
 
 OS_ECB* PacketHandlerSemaphore; //Declare a semaphore, to be signaled.
 
@@ -109,6 +109,9 @@ OS_THREAD_STACK(UARTTXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PIT0Stack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PIT1Stack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PIT2Stack, THREAD_STACK_SIZE);
+OS_THREAD_STACK(PIT3Stack, THREAD_STACK_SIZE);
+
 //OS_THREAD_STACK(RTCStack, THREAD_STACK_SIZE);
 //OS_THREAD_STACK(FTMStack, THREAD_STACK_SIZE);
 
@@ -117,7 +120,7 @@ OS_THREAD_STACK(PIT1Stack, THREAD_STACK_SIZE);
 // Thread priorities
 // 0 = highest priority
 // ----------------------------------------
-const uint8_t ANALOG_THREAD_PRIORITIES[NB_ANALOG_CHANNELS] = {3, 4};
+const uint8_t ANALOG_THREAD_PRIORITIES[NB_ANALOG_CHANNELS] = {3, 4, 5};
 
 /*! @brief Data structure used to pass Analog configuration to a user thread
  *
@@ -140,6 +143,10 @@ static TAnalogThreadData AnalogThreadData[NB_ANALOG_CHANNELS] =
   {
     .semaphore = NULL,
     .channelNb = 1
+  },
+  {
+    .semaphore = NULL,
+    .channelNb = 2
   }
 };
 
@@ -227,6 +234,8 @@ static void InitModulesThread(void* pData)
   LPTMRInit(1.25);
   TowerInit();
   Current_Charac = INVERSE; // Set the default mode to inverse
+  Analog_Put(0, 0);
+  Analog_Put(1, 0);
   OS_EnableInterrupts();
   while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
 
@@ -255,7 +264,7 @@ void AnalogLoopbackThread(void* pData)
     Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
-    if(ChannelsData[analogData->channelNb].currentRMS > 1.03 && (oldCurrent != (int32_t) ChannelsData[analogData->channelNb].currentRMS))
+    if(ChannelsData[analogData->channelNb].currentRMS > 1.03 && (oldCurrent != (int32_t) ChannelsData[analogData->channelNb].currentRMS) && (!ResetMode))
     {
       float delay;
       switch(Current_Charac)
@@ -273,11 +282,12 @@ void AnalogLoopbackThread(void* pData)
           break;
       }
       oldCurrent = (int32_t) ChannelsData[analogData->channelNb].currentRMS;
+      Analog_Put(0, VOLT_TO_ANALOG(5));
       PIT_Set(delay*PIT_Period, true, analogData->channelNb);
       OS_EnableInterrupts();
     }
     else if(ChannelsData[analogData->channelNb].currentRMS < 1.03)
-      Analog_Put(analogData->channelNb, 0);
+      Analog_Put(0, 0);
     // Put analog sample
 //    Analog_Put(analogData->channelNb, analogInputValue);
 
@@ -316,11 +326,14 @@ int main(void)
                             ANALOG_THREAD_PRIORITIES[threadNb]);
   }
 
-  while (OS_ThreadCreate(PIT0Thread, NULL, &PIT0Stack[THREAD_STACK_SIZE-1], 5) != OS_NO_ERROR); //PIT Thread
-  while (OS_ThreadCreate(PIT1Thread, NULL, &PIT1Stack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //PIT Thread
+  while (OS_ThreadCreate(PIT0Thread, NULL, &PIT0Stack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //PIT Thread
+  while (OS_ThreadCreate(PIT1Thread, NULL, &PIT1Stack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //PIT Thread
+  while (OS_ThreadCreate(PIT2Thread, NULL, &PIT2Stack[THREAD_STACK_SIZE-1], 8) != OS_NO_ERROR); //PIT Thread
+  while (OS_ThreadCreate(PIT3Thread, NULL, &PIT3Stack[THREAD_STACK_SIZE-1], 9) != OS_NO_ERROR); //PIT Thread
+
 //  while (OS_ThreadCreate(RTCThread, NULL, &RTCStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //RTC Thread
 //  while (OS_ThreadCreate(FTMThread, NULL, &FTMStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //FTM Thread
-  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //Packet Handler Thread
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 10) != OS_NO_ERROR); //Packet Handler Thread
 
 
   PacketHandlerSemaphore = OS_SemaphoreCreate(0);

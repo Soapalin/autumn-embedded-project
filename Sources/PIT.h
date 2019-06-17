@@ -16,6 +16,7 @@
 
 static volatile uint16union_t *Tripped; /*!< declaring static TowerMode Pointer */
 uint16union_t numberTripped;
+bool ResetMode;
 
 /*! @brief Sets up the PIT before first use.
  *
@@ -53,8 +54,8 @@ void PIT_Enable(const bool enable, uint8_t channel);
  */
 void __attribute__ ((interrupt)) PIT0_ISR(void);
 void __attribute__ ((interrupt)) PIT1_ISR(void);
-//void __attribute__ ((interrupt)) PIT2_ISR(void);
-//void __attribute__ ((interrupt)) PIT3_ISR(void);
+void __attribute__ ((interrupt)) PIT2_ISR(void);
+void __attribute__ ((interrupt)) PIT3_ISR(void);
 
 
 /*! @brief PIT Thread
@@ -64,6 +65,6 @@ void __attribute__ ((interrupt)) PIT1_ISR(void);
 void PIT0Thread(void* pData);
 void PIT1Thread(void* pData);
 
-//void PIT2Thread(void* pData);
-//void PIT3Thread(void* pData);
+void PIT2Thread(void* pData);
+void PIT3Thread(void* pData);
 #endif
