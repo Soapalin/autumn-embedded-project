@@ -281,7 +281,6 @@ void PIT3Thread(void* pData)
 {
   for(;;)
   {
-
     OS_SemaphoreWait(PIT3Semaphore, 0);
     OS_EnableInterrupts();
     Analog_Put(1, VOLT_TO_ANALOG(0));
@@ -289,8 +288,6 @@ void PIT3Thread(void* pData)
     ResetMode = false;
     PIT_Enable(false, 3);
     OS_DisableInterrupts();
-
-
   }
 }
 

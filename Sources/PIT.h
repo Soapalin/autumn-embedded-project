@@ -14,7 +14,7 @@
 // new types
 #include "types.h"
 
-static volatile uint16union_t *Tripped; /*!< declaring static TowerMode Pointer */
+static volatile uint16union_t *Tripped; /*!< declaring static Tripped Pointer */
 uint16union_t numberTripped;
 bool ResetMode;
 
