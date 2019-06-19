@@ -466,7 +466,7 @@ bool TowerNumberPackets(void)
     uint16union_t newTowerNumber; /*! < create a union variable to combine the two Parameters*/
     newTowerNumber.s.Lo = Packet_Parameter2;
     newTowerNumber.s.Hi = Packet_Parameter3;
-    //Flash_Write16((volatile uint16_t *) TowerNumber, newTowerNumber.l);
+    Flash_Write16((volatile uint16_t *) TowerNumber, newTowerNumber.l);
     return Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_SET, TowerNumber->s.Lo, TowerNumber->s.Hi);
   }
 }
@@ -487,7 +487,7 @@ bool TowerModePackets(void)
     uint16union_t newTowerMode; /* !< Create a union variable to combine parameter2 and 3*/
     newTowerMode.s.Lo = Packet_Parameter2;
     newTowerMode.s.Hi = Packet_Parameter3;
-    //Flash_Write16((volatile uint16_t *) TowerMode, newTowerMode.l);
+    Flash_Write16((volatile uint16_t *) TowerMode, newTowerMode.l);
     return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_SET, TowerMode->s.Lo, TowerMode->s.Hi);
   }
   return false;
