@@ -63,16 +63,16 @@ const float EXTREMELY_INVERSE_K = 80;
 const float EXTREMELY_INVERSE_ALPHA = 2;
 
 
-
-TFTMChannel FTMPacket =
-{
-  0, /*!< Channel being used */
-  CPU_MCGFF_CLK_HZ_CONFIG_0, /*!< delay count: fixed frequency clock, mentioned in Timing and Generation Docs */
-  TIMER_FUNCTION_OUTPUT_COMPARE, /*!< Brief specific: we are using OutputCompare*/
-  TIMER_OUTPUT_LOW, /*!< Choose one functionality of output compare: low */
-  NULL, /*!< Setting User Callback Function NOW UNUSED */
-  (void*) 0, /*!< User callback arguments being passed  NOW UNUSED */
-};
+//
+//TFTMChannel FTMPacket =
+//{
+//  0, /*!< Channel being used */
+//  CPU_MCGFF_CLK_HZ_CONFIG_0, /*!< delay count: fixed frequency clock, mentioned in Timing and Generation Docs */
+//  TIMER_FUNCTION_OUTPUT_COMPARE, /*!< Brief specific: we are using OutputCompare*/
+//  TIMER_OUTPUT_LOW, /*!< Choose one functionality of output compare: low */
+//  NULL, /*!< Setting User Callback Function NOW UNUSED */
+//  (void*) 0, /*!< User callback arguments being passed  NOW UNUSED */
+//};
 
 
 
@@ -119,7 +119,7 @@ OS_THREAD_STACK(PIT0Stack, THREAD_STACK_SIZE);
 // Thread priorities
 // 0 = highest priority
 // ----------------------------------------
-const uint8_t ANALOG_THREAD_PRIORITIES[NB_ANALOG_CHANNELS] = {3, 4, 5};
+const uint8_t ANALOG_THREAD_PRIORITIES[NB_ANALOG_CHANNELS] = { 3, 4, 5};
 
 /*! @brief Data structure used to pass Analog configuration to a user thread
  *
@@ -161,8 +161,6 @@ void PacketHandlerThread(void* pData)
   {
     if (Packet_Get())
     {
-//      FTM_StartTimer(&FTMPacket); /*!< Start timer, calling interrupt User function (FTM0Callback) once completed.  */
-//      LEDs_On(LED_BLUE);
       PacketHandler(); /*!<  When a complete packet is finally formed, handle the packet accordingly */
     }
   }
@@ -211,9 +209,6 @@ void __attribute__ ((interrupt)) LPTimer_ISR(void)
   // Clear interrupt flag
   LPTMR0_CSR |= LPTMR_CSR_TCF_MASK;
 
-  // Signal the analog channels to take a sample
-  for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
-    (void)OS_SemaphoreSignal(AnalogThreadData[analogNb].semaphore);
 }
 
 /*! @brief Initialises modules.
@@ -234,7 +229,7 @@ static void InitModulesThread(void* pData)
   Current_Charac = INVERSE; // Set the default mode to inverse
   Analog_Put(0, 0);
   Analog_Put(1, 0);
-  PIT_Set(0.00125*PIT_Period, true, 0);
+  PIT_Set(1250000, true, 0);
   OS_EnableInterrupts();
   while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
 
@@ -253,42 +248,48 @@ void AnalogLoopbackThread(void* pData)
 
   for (;;)
   {
+    (void)OS_SemaphoreWait(analogData->semaphore, 0);
     int16_t analogInputValue;
     static uint32_t oldCurrent;
     static uint32_t counterTrip;
-    (void)OS_SemaphoreWait(analogData->semaphore, 0);
+    static uint32_t goalTrip;
     // Get analog sample
     OS_DisableInterrupts();
     Analog_Get(analogData->channelNb, &analogInputValue);
     Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
-    if(ChannelsData[analogData->channelNb].currentRMS > 1.03 && (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100))
+    if(ChannelsData[analogData->channelNb].currentRMS > 1.03) //&& (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100)
     {
-      float step;
       switch(Current_Charac)
       {
         case INVERSE:
-          step = 1;
+          goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS);
           break;
 
         case VERY_INVERSE:
-          step = 1;
+          goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS);
           break;
 
         case EXTREMELY_INVERSE:
-          step = 1;
+          goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS);
           break;
       }
       oldCurrent = (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100;
       Analog_Put(0, VOLT_TO_ANALOG(5));
-      counterTrip = counterTrip + step;
-      if(counterTrip >= 100)
+      LEDs_On(LED_BLUE);
+      counterTrip++;
+      if(counterTrip >= goalTrip)
+      {
         Analog_Put(1, VOLT_TO_ANALOG(5));
+        LEDs_On(LED_GREEN);
+        counterTrip = 0;
+      }
       OS_EnableInterrupts();
     }
     else if(ChannelsData[analogData->channelNb].currentRMS < 1.03)
       Analog_Put(0, 0);
+
 
   }
 }
@@ -623,7 +624,7 @@ bool DORPackets (void)
 void PIT0Callback()
 {
   for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
-    AnalogThreadData[analogNb].semaphore = OS_SemaphoreCreate(0);
+    OS_SemaphoreSignal(AnalogThreadData[analogNb].semaphore);
 }
 
 

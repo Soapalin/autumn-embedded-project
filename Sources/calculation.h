@@ -53,4 +53,6 @@ float Real_RMS(TChannelData* channelData);
  */
 float Current_RMS(float voltageRMS);
 
+uint32_t Calculate_TripGoal(float currentRMS);
+
 //
