@@ -59,7 +59,10 @@ float Current_RMS(float voltageRMS)
 
 uint32_t Calculate_TripGoal(float currentRMS)
 {
-  return (((TripTimes[Current_Charac][(int) (currentRMS*100)])*10000)/125);
+  uint16_t index = (uint16_t)(currentRMS*100);
+  uint32_t data = (TripTimes[Current_Charac][index]*100000);
+  data = data/125;
+  return data;
 }
 
 

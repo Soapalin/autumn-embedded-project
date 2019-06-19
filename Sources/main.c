@@ -61,7 +61,7 @@ const float VERY_INVERSE_K = 13.5;
 const float VERY_INVERSE_ALPHA = 1;
 const float EXTREMELY_INVERSE_K = 80;
 const float EXTREMELY_INVERSE_ALPHA = 2;
-
+bool ResetMode;
 
 //
 //TFTMChannel FTMPacket =
@@ -166,7 +166,7 @@ void PacketHandlerThread(void* pData)
 }
 
 
-void LPTMRInit(const float count)
+void LPTMRInit(const int count)
 {
   // Enable clock gate to LPTMR module
   SIM_SCGC5 |= SIM_SCGC5_LPTIMER_MASK;
@@ -199,14 +199,15 @@ void LPTMRInit(const float count)
   // Enable interrupts from LPTMR module
   NVICISER2 = NVIC_ISER_SETENA(1 << 21);
 
-  //Turn on LPTMR and start counting
-  LPTMR0_CSR |= LPTMR_CSR_TEN_MASK;
+//  LPTMR0_CSR |= LPTMR_CSR_TEN_MASK;
 }
 
 void __attribute__ ((interrupt)) LPTimer_ISR(void)
 {
   // Clear interrupt flag
   LPTMR0_CSR |= LPTMR_CSR_TCF_MASK;
+  LPTMR0_CSR &= ~LPTMR_CSR_TEN_MASK;
+  ResetMode = true;
 
 }
 
@@ -223,7 +224,7 @@ static void InitModulesThread(void* pData)
   for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
     AnalogThreadData[analogNb].semaphore = OS_SemaphoreCreate(0);
 
-//  LPTMRInit(1.25);
+  LPTMRInit(1000);
   TowerInit();
   Current_Charac = INVERSE; // Set the default mode to inverse
   Analog_Put(0, 0);
@@ -258,22 +259,16 @@ void AnalogLoopbackThread(void* pData)
     Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
+    if(ResetMode)
+    {
+      counterTrip = 0;
+      LEDs_Off(LED_GREEN);
+      LEDs_Off(LED_BLUE);
+      ResetMode = false;
+    }
     if(ChannelsData[analogData->channelNb].currentRMS > 1.03) //&& (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100)
     {
-      switch(Current_Charac)
-      {
-        case INVERSE:
-          goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS);
-          break;
-
-        case VERY_INVERSE:
-          goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS);
-          break;
-
-        case EXTREMELY_INVERSE:
-          goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS);
-          break;
-      }
+      goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS);
       oldCurrent = (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100;
       Analog_Put(0, VOLT_TO_ANALOG(5));
       LEDs_On(LED_BLUE);
@@ -282,7 +277,7 @@ void AnalogLoopbackThread(void* pData)
       {
         Analog_Put(1, VOLT_TO_ANALOG(5));
         LEDs_On(LED_GREEN);
-        counterTrip = 0;
+        LPTMR0_CSR |= LPTMR_CSR_TEN_MASK;
       }
       OS_EnableInterrupts();
     }
