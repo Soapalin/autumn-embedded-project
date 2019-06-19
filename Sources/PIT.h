@@ -53,9 +53,8 @@ void PIT_Enable(const bool enable, uint8_t channel);
  *  @note Assumes the PIT has been initialized.
  */
 void __attribute__ ((interrupt)) PIT0_ISR(void);
-void __attribute__ ((interrupt)) PIT1_ISR(void);
-void __attribute__ ((interrupt)) PIT2_ISR(void);
-void __attribute__ ((interrupt)) PIT3_ISR(void);
+//void __attribute__ ((interrupt)) PIT1_ISR(void);
+
 
 
 /*! @brief PIT Thread
@@ -63,8 +62,6 @@ void __attribute__ ((interrupt)) PIT3_ISR(void);
  *Every period, this function is triggered and values of the accelerometer is sent
  */
 void PIT0Thread(void* pData);
-void PIT1Thread(void* pData);
+//void PIT1Thread(void* pData);
 
-void PIT2Thread(void* pData);
-void PIT3Thread(void* pData);
 #endif

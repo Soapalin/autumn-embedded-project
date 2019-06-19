@@ -87,6 +87,7 @@ bool TowerTimePackets(void);
 bool ProgramBytePackets(void);
 bool ReadBytePackets(void);
 bool DORPackets (void);
+void PIT0Callback(void);
 
 
 // ----------------------------------------
@@ -108,9 +109,7 @@ OS_THREAD_STACK(UARTRXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(UARTTXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PIT0Stack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(PIT1Stack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(PIT2Stack, THREAD_STACK_SIZE);
-OS_THREAD_STACK(PIT3Stack, THREAD_STACK_SIZE);
+//OS_THREAD_STACK(PIT1Stack, THREAD_STACK_SIZE);
 
 //OS_THREAD_STACK(RTCStack, THREAD_STACK_SIZE);
 //OS_THREAD_STACK(FTMStack, THREAD_STACK_SIZE);
@@ -230,12 +229,12 @@ static void InitModulesThread(void* pData)
   for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
     AnalogThreadData[analogNb].semaphore = OS_SemaphoreCreate(0);
 
-  // Initialise the low power timer to tick every 10 ms
-  LPTMRInit(1.25);
+//  LPTMRInit(1.25);
   TowerInit();
   Current_Charac = INVERSE; // Set the default mode to inverse
   Analog_Put(0, 0);
   Analog_Put(1, 0);
+  PIT_Set(0.00125*PIT_Period, true, 0);
   OS_EnableInterrupts();
   while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
 
@@ -255,8 +254,8 @@ void AnalogLoopbackThread(void* pData)
   for (;;)
   {
     int16_t analogInputValue;
-    static int32_t oldCurrent;
-
+    static uint32_t oldCurrent;
+    static uint32_t counterTrip;
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     // Get analog sample
     OS_DisableInterrupts();
@@ -264,32 +263,32 @@ void AnalogLoopbackThread(void* pData)
     Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]);
     ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
-    if(ChannelsData[analogData->channelNb].currentRMS > 1.03 && (oldCurrent != (int32_t) ChannelsData[analogData->channelNb].currentRMS) && (!ResetMode))
+    if(ChannelsData[analogData->channelNb].currentRMS > 1.03 && (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100))
     {
-      float delay;
+      float step;
       switch(Current_Charac)
       {
         case INVERSE:
-          delay = ((INVERSE_K)/((pow((ChannelsData[analogData->channelNb].currentRMS),(INVERSE_ALPHA)))-1));
+          step = 1;
           break;
 
         case VERY_INVERSE:
-          delay = ((VERY_INVERSE_K)/((ChannelsData[analogData->channelNb].currentRMS)-1));
+          step = 1;
           break;
 
         case EXTREMELY_INVERSE:
-          delay = ((EXTREMELY_INVERSE_K)/(pow((ChannelsData[analogData->channelNb].currentRMS), EXTREMELY_INVERSE_ALPHA)-1));
+          step = 1;
           break;
       }
-      oldCurrent = (int32_t) ChannelsData[analogData->channelNb].currentRMS;
+      oldCurrent = (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100;
       Analog_Put(0, VOLT_TO_ANALOG(5));
-      PIT_Set(delay*PIT_Period, true, analogData->channelNb);
+      counterTrip = counterTrip + step;
+      if(counterTrip >= 100)
+        Analog_Put(1, VOLT_TO_ANALOG(5));
       OS_EnableInterrupts();
     }
     else if(ChannelsData[analogData->channelNb].currentRMS < 1.03)
       Analog_Put(0, 0);
-    // Put analog sample
-//    Analog_Put(analogData->channelNb, analogInputValue);
 
   }
 }
@@ -327,13 +326,10 @@ int main(void)
   }
 
   while (OS_ThreadCreate(PIT0Thread, NULL, &PIT0Stack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //PIT Thread
-  while (OS_ThreadCreate(PIT1Thread, NULL, &PIT1Stack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //PIT Thread
-  while (OS_ThreadCreate(PIT2Thread, NULL, &PIT2Stack[THREAD_STACK_SIZE-1], 8) != OS_NO_ERROR); //PIT Thread
-  while (OS_ThreadCreate(PIT3Thread, NULL, &PIT3Stack[THREAD_STACK_SIZE-1], 9) != OS_NO_ERROR); //PIT Thread
 
 //  while (OS_ThreadCreate(RTCThread, NULL, &RTCStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //RTC Thread
 //  while (OS_ThreadCreate(FTMThread, NULL, &FTMStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //FTM Thread
-  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 10) != OS_NO_ERROR); //Packet Handler Thread
+  while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //Packet Handler Thread
 
 
   PacketHandlerSemaphore = OS_SemaphoreCreate(0);
@@ -434,9 +430,7 @@ bool TowerInit(void)
   else
     numberTripped.l = 0;
 //  RTC_Init(NULL, NULL);
-  PIT_Init(MODULECLK, NULL , NULL);
-  FTM_Init();
-  FTM_Set(&FTMPacket); /*!< configure FTM0 functionality, passing in the declared struct address containing values at top of file */
+  PIT_Init(MODULECLK, (void*) &PIT0Callback , NULL);
   return Packet_Init(BAUDRATE, MODULECLK);
 }
 
@@ -618,6 +612,18 @@ bool DORPackets (void)
     case DOR_GET_FAULT:
       break;
   }
+}
+
+
+/*! @brief Triggered during interrupt, toggles green LED
+ *
+ *  @return void
+ *  @note Assumes that PIT_Init called
+ */
+void PIT0Callback()
+{
+  for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
+    AnalogThreadData[analogNb].semaphore = OS_SemaphoreCreate(0);
 }
 
 

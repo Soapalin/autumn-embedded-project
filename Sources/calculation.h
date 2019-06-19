@@ -29,7 +29,7 @@ typedef enum
   EXTREMELY_INVERSE
 }TCharacteristic;
 
-TCharacteristic Current_Charac; // Keepint track of the current mode INVERSE, VERY INVERSE, EXTREMELY INVERSE
+TCharacteristic Current_Charac; // Keeping track of the current mode INVERSE, VERY INVERSE, EXTREMELY INVERSE
 
 
 /*! @brief Keeps the 16 samples of voltages, voltages square and running total of the square

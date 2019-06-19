@@ -26,14 +26,11 @@
 static uint32_t PIT_ModuleClk;
 static void *PITArguments;
 static void (*PITCallback)(void* PITArguments);
-static const uint32_t PIT_Period = 1000000000; /*!< 1 second in nano */
-
 
 
 OS_ECB* PIT0Semaphore; //Declare Semaphore
-OS_ECB* PIT1Semaphore;
-OS_ECB* PIT2Semaphore;
-OS_ECB* PIT3Semaphore;
+//OS_ECB* PIT1Semaphore;
+
 
 
 bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userArguments)
@@ -62,21 +59,12 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
   NVICISER2 = (1 << 4);  /*!< Enable interrupts with NVIC */
 
   // IRQ PIT1 = 69
-  NVICICPR2 = (1 << 5);
-  NVICISER2 = (1 << 5);
-
-  // IRQ PIT2 = 70
-  NVICICPR2 = (1 << 6);
-  NVICISER2 = (1 << 6);
-
-  // IRQ PIT1 = 71
-  NVICICPR2 = (1 << 7);
-  NVICISER2 = (1 << 7);
+//  NVICICPR2 = (1 << 5);
+//  NVICISER2 = (1 << 5);
 
   PIT0Semaphore = OS_SemaphoreCreate(0); //Create a Semaphore
-  PIT1Semaphore = OS_SemaphoreCreate(0);
-  PIT2Semaphore = OS_SemaphoreCreate(0);
-  PIT3Semaphore = OS_SemaphoreCreate(0);
+//  PIT1Semaphore = OS_SemaphoreCreate(0);
+
 
   return true;
 
@@ -100,14 +88,6 @@ void PIT_Set(const uint32_t period, const bool restart, uint8_t channel)
 
     case 1:
       PIT_LDVAL1 = triggerLDVAL; /*!< Assign the trigger value at register0. Will assign a number to count down from*/
-      break;
-
-    case 2:
-      PIT_LDVAL2 = triggerLDVAL; /*!< Assign the trigger value at register0. Will assign a number to count down from*/
-      break;
-
-    case 3:
-      PIT_LDVAL3 = triggerLDVAL; /*!< Assign the trigger value at register0. Will assign a number to count down from*/
       break;
 
   }
@@ -144,27 +124,6 @@ void PIT_Enable(const bool enable, uint8_t channel)
       }
       break;
 
-    case 2:
-      if(enable)
-      {
-        PIT_TCTRL2 |= PIT_TCTRL_TEN_MASK; /*!< Enable PIT Timer at control register 0*/
-      }
-      else
-      {
-        PIT_TCTRL2 &= ~PIT_TCTRL_TEN_MASK; /*!< disable PIT Time at control Register 0*/
-      }
-      break;
-
-    case 3:
-      if(enable)
-      {
-        PIT_TCTRL3 |= PIT_TCTRL_TEN_MASK; /*!< Enable PIT Timer at control register 0*/
-      }
-      else
-      {
-        PIT_TCTRL3 &= ~PIT_TCTRL_TEN_MASK; /*!< disable PIT Time at control Register 0*/
-      }
-      break;
   }
   if(enable)
   {
@@ -186,113 +145,55 @@ void __attribute__ ((interrupt)) PIT0_ISR(void)
   OS_ISRExit(); //Exit Interrupt
 }
 
-void __attribute__ ((interrupt)) PIT1_ISR(void)
-{
-  OS_ISREnter(); //Enter Interrupt
-  /* Interrupt needs to be cleared at every ISR*/
-  PIT_TFLG1 |= PIT_TFLG_TIF_MASK; /*!< Clearing Timer Interrupt Flag after it is raised by writing 1 to it - p1344*/
-  while(OS_SemaphoreSignal(PIT1Semaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
-  OS_ISRExit(); //Exit Interrupt
-}
 
-void __attribute__ ((interrupt)) PIT2_ISR(void)
-{
-  OS_ISREnter(); //Enter Interrupt
-  /* Interrupt needs to be cleared at every ISR*/
-  PIT_TFLG2 |= PIT_TFLG_TIF_MASK; /*!< Clearing Timer Interrupt Flag after it is raised by writing 1 to it - p1344*/
-  while(OS_SemaphoreSignal(PIT2Semaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
-  OS_ISRExit(); //Exit Interrupt
-}
-
-void __attribute__ ((interrupt)) PIT3_ISR(void)
-{
-  OS_ISREnter(); //Enter Interrupt
-  /* Interrupt needs to be cleared at every ISR*/
-  PIT_TFLG3 |= PIT_TFLG_TIF_MASK; /*!< Clearing Timer Interrupt Flag after it is raised by writing 1 to it - p1344*/
-  while(OS_SemaphoreSignal(PIT3Semaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
-  OS_ISRExit(); //Exit Interrupt
-}
 
 void PIT0Thread(void* pData)
 {
   for(;;)
   {
-
     OS_SemaphoreWait(PIT0Semaphore, 0);
     //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
-    if(!ResetMode)
+    // Signal the analog channels to take a sample
+    if (PITCallback)
     {
-      OS_DisableInterrupts();
-      Analog_Put(1, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
-      numberTripped.l++;
-  //    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
-      ResetMode = true;
-      PIT_Set(PIT_Period, true, 3);
-      OS_EnableInterrupts();
-
+      (*PITCallback)(PITArguments);
     }
+//    if(!ResetMode)
+//    {
+//      OS_DisableInterrupts();
+//      Analog_Put(1, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
+//      numberTripped.l++;
+//  //    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
+//      ResetMode = true;
+//      OS_EnableInterrupts();
+//
+//    }
 
   }
 }
 
-void PIT1Thread(void* pData)
-{
-  for(;;)
-  {
-
-    OS_SemaphoreWait(PIT1Semaphore, 0);
-    //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
-    if(!ResetMode)
-    {
-      OS_DisableInterrupts();
-      Analog_Put(1, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
-      numberTripped.l++;
-  //    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
-      ResetMode = true;
-      PIT_Set(PIT_Period, true, 3);
-      OS_EnableInterrupts();
-
-    }
-  }
-}
-
-void PIT2Thread(void* pData)
-{
-  for(;;)
-  {
-
-    OS_SemaphoreWait(PIT2Semaphore, 0);
-    if(!ResetMode)
-    {
-      OS_DisableInterrupts();
-      Analog_Put(1, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
-      numberTripped.l++;
-  //    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
-      ResetMode = true;
-      PIT_Set(PIT_Period, true, 3);
-      OS_EnableInterrupts();
-
-    }
-  }
-}
+//void PIT1Thread(void* pData)
+//{
+//  for(;;)
+//  {
+//
+//    OS_SemaphoreWait(PIT1Semaphore, 0);
+//    //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
+//    if(!ResetMode)
+//    {
+//      OS_DisableInterrupts();
+//      Analog_Put(1, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
+//      numberTripped.l++;
+//  //    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
+//      ResetMode = true;
+//      PIT_Set(PIT_Period, true, 3);
+//      OS_EnableInterrupts();
+//
+//    }
+//  }
+//}
 
 
-void PIT3Thread(void* pData)
-{
-  for(;;)
-  {
-
-    OS_SemaphoreWait(PIT3Semaphore, 0);
-    OS_EnableInterrupts();
-    Analog_Put(1, VOLT_TO_ANALOG(0));
-    Analog_Put(0, VOLT_TO_ANALOG(0));
-    ResetMode = false;
-    PIT_Enable(false, 3);
-    OS_DisableInterrupts();
-
-
-  }
-}
 
 
 /*!
