@@ -28,15 +28,15 @@ static float TripTimes[3][1898] =
 void Sliding_Voltage(float data, TChannelData* channelData)
 {
   OS_DisableInterrupts();
-  channelData->Voltage[15] = data;
-  channelData->VoltageSqr[15] = data*data;
-  channelData->TotalVoltageSqr += channelData->VoltageSqr[15];
+  channelData->TotalVoltageSqr += (data*data);
   channelData->TotalVoltageSqr -= channelData->VoltageSqr[0];
   for(int i = 1; i < 16; i++)
   {
     channelData->Voltage[i-1] = channelData->Voltage[i];
     channelData->VoltageSqr[i-1] = channelData->Voltage[i];
   }
+  channelData->Voltage[15] = data;
+  channelData->VoltageSqr[15] = data*data;
   OS_EnableInterrupts();
 }
 

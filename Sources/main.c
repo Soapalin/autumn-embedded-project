@@ -100,7 +100,6 @@ void PIT0Callback(void);
 OS_ECB* PacketHandlerSemaphore; //Declare a semaphore, to be signaled.
 
 TChannelData ChannelsData[NB_ANALOG_CHANNELS]; // keeping track of voltages of each channel independently
-TFloat ChannelCurrents[NB_ANALOG_CHANNELS];
 
 // Thread stacks
 OS_THREAD_STACK(InitModulesThreadStack, THREAD_STACK_SIZE); /*!< The stack for the LED Init thread. */
@@ -576,6 +575,7 @@ bool TowerTimePackets(void)
  */
 bool DORPackets (void)
 {
+  float decimalCurrents[NB_ANALOG_CHANNELS];
   switch(Packet_Parameter1)
   {
     case DOR_IDMT_CHAR:
@@ -594,12 +594,12 @@ bool DORPackets (void)
 
 
     case DOR_GET_CURRENTS:
-      ChannelCurrents[0] = (TFloat) ChannelsData[0].currentRMS;
-      ChannelCurrents[1] = (TFloat) ChannelsData[1].currentRMS;
-//      ChannelCurrents[2] = (TFloat) ChannelsData[2].currentRMS;
-      Packet_Put(DOR_COMMAND, 0, ChannelCurrents[0].dParts.dLo.s.Hi, (int8_t) ChannelCurrents[0].d);
-      Packet_Put(DOR_COMMAND, 1, ChannelCurrents[1].dParts.dLo.s.Hi, (int8_t) ChannelCurrents[1].d);
-//      Packet_Put(DOR_COMMAND, 1, ChannelCurrents[2].dParts.dLo.s.Lo, ChannelCurrents[2].dParts.dLo.s.Hi);
+      decimalCurrents[0] =  (ChannelsData[0].currentRMS - ((uint8_t) (ChannelsData[0].currentRMS)))*100;
+      decimalCurrents[1] =  (ChannelsData[1].currentRMS - ((uint8_t) (ChannelsData[1].currentRMS)))*100;
+      decimalCurrents[2] =  (ChannelsData[2].currentRMS - ((uint8_t) (ChannelsData[2].currentRMS)))*100;
+      Packet_Put(DOR_COMMAND, 0, (uint8_t) (decimalCurrents[0]), (uint8_t) ChannelsData[0].currentRMS);
+      Packet_Put(DOR_COMMAND, 1, (uint8_t) (decimalCurrents[1]), (uint8_t) ChannelsData[1].currentRMS);
+      Packet_Put(DOR_COMMAND, 2, (uint8_t) (decimalCurrents[2]), (uint8_t) ChannelsData[2].currentRMS);
       break;
 
     case DOR_GET_FREQUENCY:
