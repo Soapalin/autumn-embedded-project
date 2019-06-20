@@ -590,7 +590,7 @@ bool DORPackets (void)
       {
   /*SET IDMT CHARACTERISTICS */
         Current_Charac = Packet_Parameter3;
-        Flash_Write8((volatile uint8_t *) CharacFlash, Current_Charac);
+//        Flash_Write8((volatile uint8_t *) CharacFlash, Current_Charac);
         return Packet_Put(DOR_COMMAND, DOR_IDMT_CHAR, DOR_IDMT_GET, Current_Charac);
       }
       break;
