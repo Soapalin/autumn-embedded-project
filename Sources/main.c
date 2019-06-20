@@ -52,6 +52,9 @@ const uint16_t STUDENT_ID = 0x22E2; /*!< Student Number: 7533 */
 const uint8_t PACKET_ACK_MASK = 0x80; /*!< Packet Acknowledgment mask, referring to bit 7 of the Packet */
 static volatile uint16union_t *TowerNumber; /*!< declaring static TowerNumber Pointer */
 static volatile uint16union_t *TowerMode; /*!< declaring static TowerMode Pointer */
+static volatile uint16union_t *Tripped; /*!< declaring static TowerMode Pointer */
+static volatile uint8_t *CharacFlash;
+uint16union_t numberTripped;
 const uint32_t PIT_Period = 1000000000; /*!< 1 second in nano */
 
 
@@ -225,8 +228,8 @@ static void InitModulesThread(void* pData)
     AnalogThreadData[analogNb].semaphore = OS_SemaphoreCreate(0);
 
   LPTMRInit(1000);
-  TowerInit();
   Current_Charac = INVERSE; // Set the default mode to inverse
+  TowerInit();
   Analog_Put(0, 0);
   Analog_Put(1, 0);
   PIT_Set(1250000, true, 0);
@@ -278,6 +281,8 @@ void AnalogLoopbackThread(void* pData)
         Analog_Put(1, VOLT_TO_ANALOG(5));
         LEDs_On(LED_GREEN);
         LPTMR0_CSR |= LPTMR_CSR_TEN_MASK;
+        numberTripped.l++;
+        Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
       }
       OS_EnableInterrupts();
     }
@@ -404,10 +409,15 @@ bool TowerInit(void)
   Flash_Init();
   bool towerModeInit = Flash_AllocateVar( (volatile void **) &TowerMode, sizeof(*TowerMode));
   bool towerNumberInit = Flash_AllocateVar((volatile void **) &TowerNumber, sizeof(*TowerNumber));
-  bool TrippedInit = Flash_AllocateVar((volatile void **) &Tripped, sizeof(*Tripped));
+  bool trippedInit = Flash_AllocateVar((volatile void **) &Tripped, sizeof(*Tripped));
+  bool characInit = Flash_AllocateVar((volatile void **) &CharacFlash, sizeof(*CharacFlash));
   LEDs_Init();
-  if(towerModeInit && towerNumberInit && TrippedInit)
+  if(towerModeInit && towerNumberInit && trippedInit && characInit)
   {
+    if(Tripped->l == 0xffff)
+      Flash_Write16((volatile uint16_t *) Tripped, 0x1);
+    if(*CharacFlash == 0xff)
+      Flash_Write8((volatile uint8_t *) CharacFlash, Current_Charac);
     if(TowerMode->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
     {
       Flash_Write16((volatile uint16_t *) TowerMode, 0x1); /*!< Parsing through the function: typecast volatile uint16_t pointer from uint16union_t pointer, and default towerMode = 1 */
@@ -416,15 +426,12 @@ bool TowerInit(void)
     {
       Flash_Write16((volatile uint16_t *) TowerNumber, STUDENT_ID); /*Like above, but with towerNumber set to our student ID = 7533*/
     }
-//    if(Tripped->l == 0xffff)
-//    {
-//      Flash_Write16((volatile uint16_t *) Tripped, 0);
+
   }
-  if(Tripped->l != 0xffff)
-    numberTripped.l = _FH(FLASH_DATA_START + 4);
-  else
-    numberTripped.l = 0;
-//  RTC_Init(NULL, NULL);
+//  if(Tripped->l != 0xffff)
+//    numberTripped.l = _FH(FLASH_DATA_START + 4);
+//  else
+//    numberTripped.l = 0;
   PIT_Init(MODULECLK, (void*) &PIT0Callback , NULL);
   return Packet_Init(BAUDRATE, MODULECLK);
 }
@@ -583,6 +590,7 @@ bool DORPackets (void)
       {
   /*SET IDMT CHARACTERISTICS */
         Current_Charac = Packet_Parameter3;
+        Flash_Write8((volatile uint8_t *) CharacFlash, Current_Charac);
         return Packet_Put(DOR_COMMAND, DOR_IDMT_CHAR, DOR_IDMT_GET, Current_Charac);
       }
       break;
@@ -602,7 +610,8 @@ bool DORPackets (void)
       break;
 
     case DOR_GET_TRIPPED:
-      Packet_Put(DOR_COMMAND, DOR_GET_TRIPPED,   numberTripped.s.Lo,   numberTripped.s.Hi);
+
+      Packet_Put(DOR_COMMAND, DOR_GET_TRIPPED,   Tripped->s.Lo,   Tripped->s.Hi);
       break;
 
     case DOR_GET_FAULT:

@@ -14,8 +14,7 @@
 // new types
 #include "types.h"
 
-static volatile uint16union_t *Tripped; /*!< declaring static TowerMode Pointer */
-uint16union_t numberTripped;
+
 bool ResetMode;
 
 /*! @brief Sets up the PIT before first use.
