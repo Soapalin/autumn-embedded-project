@@ -225,7 +225,7 @@ static void InitModulesThread(void* pData)
   Analog_Put(1, 0);
   PIT_Set(1250000, true, 0);
   OS_EnableInterrupts();
-  while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR); // Signal Packet Handler Thread 
+  while (OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR); // Signal Packet Handler Thread 
 
   // We only do this once - therefore delete this thread
   OS_ThreadDelete(OS_PRIORITY_SELF);
@@ -247,7 +247,7 @@ void AnalogLoopbackThread(void* pData)
 
   for (;;)
   {
-    (void)OS_SemaphoreWait(analogData->semaphore, 0);
+    (void) OS_SemaphoreWait(analogData->semaphore, 0);
     int16_t analogInputValue;
     OS_DisableInterrupts();
     // Get analog sample
@@ -255,7 +255,7 @@ void AnalogLoopbackThread(void* pData)
     Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]); // Adding the new sample value to the structure 
     ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]); // Calculate Voltage RMS of the last 16 samples
     ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS); // Finding and storing the current RMS in the structure 
-    if(ResetMode)
+    if (ResetMode)
     {
       // Resetting the circuit breaker and the code after tripping 
       counterTrip = 0;
@@ -263,14 +263,14 @@ void AnalogLoopbackThread(void* pData)
       LEDs_Off(LED_BLUE);
       ResetMode = false;
     }
-    if(ChannelsData[analogData->channelNb].currentRMS > 1.03) //&& (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100)
+    if (ChannelsData[analogData->channelNb].currentRMS > 1.03) //&& (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100)
     {
       goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS); // Calculate the goal to reach before tripping 
       oldCurrent = (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100;
       Analog_Put(0, VOLT_TO_ANALOG(5)); // Detecting a currentRMS over 1.03, outputting in time channel
       LEDs_On(LED_BLUE); // Using LED so don't have to check on DSO
       counterTrip++; // Incremetnting the count to reach the goal
-      if(counterTrip >= goalTrip) // If goal is reached or beyond
+      if (counterTrip >= goalTrip) // If goal is reached or beyond
       {
         Analog_Put(1, VOLT_TO_ANALOG(5)); // Output in channel 2 after "delay"
         LEDs_On(LED_GREEN); // Using LED to check without DSO
@@ -284,7 +284,7 @@ void AnalogLoopbackThread(void* pData)
         OS_EnableInterrupts();
       }
     }
-    else if(ChannelsData[analogData->channelNb].currentRMS < 1.03)
+    else if (ChannelsData[analogData->channelNb].currentRMS < 1.03)
     {
       Analog_Put(0, 0);
       LEDs_Off(LED_BLUE);
@@ -350,7 +350,7 @@ int main(void)
 void PacketHandler(void)
 { /*!<  Packet Handler used after Packet Get */
   bool actionSuccess;  /*!<  Acknowledge is false as long as the package isn't acknowledge or if it's not required */
-  switch(Packet_Command & ~PACKET_ACK_MASK)
+  switch (Packet_Command & ~PACKET_ACK_MASK)
   {
     case TOWER_STARTUP_COMMAND:
       actionSuccess = StartupPackets();
@@ -387,9 +387,9 @@ void PacketHandler(void)
 
   }
 
-  if(Packet_Command & PACKET_ACK_MASK) /*!< if ACK bit is set, need to send back ACK packet if done successfully and NAK packet with bit7 cleared */
+  if (Packet_Command & PACKET_ACK_MASK) /*!< if ACK bit is set, need to send back ACK packet if done successfully and NAK packet with bit7 cleared */
   {
-    if(actionSuccess)
+    if (actionSuccess)
     {
       Packet_Put(Packet_Command, Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
     }
@@ -416,17 +416,17 @@ bool TowerInit(void)
   bool trippedInit = Flash_AllocateVar((volatile void **) &Tripped, sizeof(*Tripped));
   bool characInit = Flash_AllocateVar((volatile void **) &CharacFlash, sizeof(*CharacFlash));
   LEDs_Init();
-  if(towerModeInit && towerNumberInit && trippedInit && characInit)
+  if (towerModeInit && towerNumberInit && trippedInit && characInit)
   {
-    if(Tripped->l == 0xffff)
+    if (Tripped->l == 0xffff)
       Flash_Write16((volatile uint16_t *) Tripped, 0x1);
-    if(*CharacFlash == 0xff)
+    if (*CharacFlash == 0xff)
       Flash_Write8((volatile uint8_t *) CharacFlash, Current_Charac);
-    if(TowerMode->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
+    if (TowerMode->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
     {
       Flash_Write16((volatile uint16_t *) TowerMode, 0x1); /*!< Parsing through the function: typecast volatile uint16_t pointer from uint16union_t pointer, and default towerMode = 1 */
     }
-    if(TowerNumber->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
+    if (TowerNumber->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
     {
       Flash_Write16((volatile uint16_t *) TowerNumber, STUDENT_ID); /*Like above, but with towerNumber set to our student ID = 7533*/
     }
@@ -448,11 +448,11 @@ bool TowerInit(void)
  */
 bool StartupPackets(void)
 {
-  if(Packet_Put(TOWER_STARTUP_COMMAND, TOWER_STARTUP_PARAMETER1, TOWER_STARTUP_PARAMETER2, TOWER_STARTUP_PARAMETER3))
+  if (Packet_Put(TOWER_STARTUP_COMMAND, TOWER_STARTUP_PARAMETER1, TOWER_STARTUP_PARAMETER2, TOWER_STARTUP_PARAMETER3))
   {
-    if(Packet_Put(TOWER_VERSION_COMMAND, TOWER_VERSION_PARAMETER1, TOWER_VERSION_PARAMETER2, TOWER_VERSION_PARAMETER3))
+    if (Packet_Put(TOWER_VERSION_COMMAND, TOWER_VERSION_PARAMETER1, TOWER_VERSION_PARAMETER2, TOWER_VERSION_PARAMETER3))
     {
-      if(Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_GET, TowerNumber->s.Lo, TowerNumber->s.Hi))
+      if (Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_GET, TowerNumber->s.Lo, TowerNumber->s.Hi))
       {
         return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_GET, TowerMode->s.Lo, TowerMode->s.Hi);
       }
@@ -467,12 +467,12 @@ bool StartupPackets(void)
  */
 bool TowerNumberPackets(void)
 {
-  if(Packet_Parameter1 == (uint8_t) 1)
+  if (Packet_Parameter1 == (uint8_t) 1)
   {
     // if Parameter1 = 1 - get the tower number and send it to PC
     return Packet_Put(TOWER_NUMBER_COMMAND, TOWER_NUMBER_GET, TowerNumber->s.Lo, TowerNumber->s.Hi);
   }
-  else if(Packet_Parameter1 == (uint8_t) 2) // if Parameter1 =2 - write new TowerNumber to Flash and send it to interface
+  else if (Packet_Parameter1 == (uint8_t) 2) // if Parameter1 =2 - write new TowerNumber to Flash and send it to interface
   {
     uint16union_t newTowerNumber; /*! < create a union variable to combine the two Parameters*/
     newTowerNumber.s.Lo = Packet_Parameter2;
@@ -489,7 +489,7 @@ bool TowerNumberPackets(void)
  */
 bool TowerModePackets(void)
 {
-  if(Packet_Parameter1 == 1) // if paramater1 = 1 - get the towermode and send it to PC
+  if (Packet_Parameter1 == 1) // if paramater1 = 1 - get the towermode and send it to PC
   {
     return Packet_Put(TOWER_MODE_COMMAND,TOWER_MODE_GET, TowerMode->s.Lo, TowerMode->s.Hi);
   }
@@ -582,15 +582,15 @@ bool TowerTimePackets(void)
 bool DORPackets (void)
 {
   float decimalCurrents[NB_ANALOG_CHANNELS];
-  switch(Packet_Parameter1)
+  switch (Packet_Parameter1)
   {
     case DOR_IDMT_CHAR:
-      if(Packet_Parameter2 == DOR_IDMT_GET)
+      if (Packet_Parameter2 == DOR_IDMT_GET)
       {
   /*GET IDMT CHARACTERISTICS*/
         return Packet_Put(DOR_COMMAND, DOR_IDMT_CHAR, DOR_IDMT_GET, Current_Charac);
       }
-      else if(Packet_Parameter2 == DOR_IDMT_SET)
+      else if (Packet_Parameter2 == DOR_IDMT_SET)
       {
   /*SET IDMT CHARACTERISTICS */
         Current_Charac = Packet_Parameter3;
