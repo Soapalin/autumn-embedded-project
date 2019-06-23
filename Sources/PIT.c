@@ -152,23 +152,10 @@ void PIT0Thread(void* pData)
   for(;;)
   {
     OS_SemaphoreWait(PIT0Semaphore, 0);
-    //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
-    // Signal the analog channels to take a sample
     if (PITCallback)
     {
       (*PITCallback)(PITArguments);
     }
-//    if(!ResetMode)
-//    {
-//      OS_DisableInterrupts();
-//      Analog_Put(1, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
-//      numberTripped.l++;
-//  //    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
-//      ResetMode = true;
-//      OS_EnableInterrupts();
-//
-//    }
-
   }
 }
 

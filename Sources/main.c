@@ -54,16 +54,8 @@ static volatile uint16union_t *TowerNumber; /*!< declaring static TowerNumber Po
 static volatile uint16union_t *TowerMode; /*!< declaring static TowerMode Pointer */
 static volatile uint16union_t *Tripped; /*!< declaring static TowerMode Pointer */
 static volatile uint8_t *CharacFlash;
-uint16union_t numberTripped;
+uint16union_t NumberTripped;
 const uint32_t PIT_Period = 1000000000; /*!< 1 second in nano */
-
-
-const float INVERSE_K = 0.14;
-const float INVERSE_ALPHA = 0.02;
-const float VERY_INVERSE_K = 13.5;
-const float VERY_INVERSE_ALPHA = 1;
-const float EXTREMELY_INVERSE_K = 80;
-const float EXTREMELY_INVERSE_ALPHA = 2;
 bool ResetMode;
 
 //
@@ -76,7 +68,6 @@ bool ResetMode;
 //  NULL, /*!< Setting User Callback Function NOW UNUSED */
 //  (void*) 0, /*!< User callback arguments being passed  NOW UNUSED */
 //};
-
 
 
 // Prototypes functions
@@ -227,14 +218,14 @@ static void InitModulesThread(void* pData)
   for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
     AnalogThreadData[analogNb].semaphore = OS_SemaphoreCreate(0);
 
-  LPTMRInit(1000);
+  LPTMRInit(1000); // Set the Low power timer to a period of 1 second
   Current_Charac = INVERSE; // Set the default mode to inverse
-  TowerInit();
-  Analog_Put(0, 0);
+  TowerInit(); // Initialise tower modules 
+  Analog_Put(0, 0); 
   Analog_Put(1, 0);
   PIT_Set(1250000, true, 0);
   OS_EnableInterrupts();
-  while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR);
+  while(OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR); // Signal Packet Handler Thread 
 
   // We only do this once - therefore delete this thread
   OS_ThreadDelete(OS_PRIORITY_SELF);
@@ -249,21 +240,24 @@ void AnalogLoopbackThread(void* pData)
   // Make the code easier to read by giving a name to the typecast'ed pointer
   #define analogData ((TAnalogThreadData*)pData)
 
+
+  static uint32_t oldCurrent;
+  static uint32_t counterTrip;
+  static uint32_t goalTrip;
+
   for (;;)
   {
     (void)OS_SemaphoreWait(analogData->semaphore, 0);
     int16_t analogInputValue;
-    static uint32_t oldCurrent;
-    static uint32_t counterTrip;
-    static uint32_t goalTrip;
-    // Get analog sample
     OS_DisableInterrupts();
-    Analog_Get(analogData->channelNb, &analogInputValue);
-    Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]);
-    ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]);
-    ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS);
+    // Get analog sample
+    Analog_Get(analogData->channelNb, &analogInputValue); 
+    Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]); // Adding the new sample value to the structure 
+    ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]); // Calculate Voltage RMS of the last 16 samples
+    ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS); // Finding and storing the current RMS in the structure 
     if(ResetMode)
     {
+      // Resetting the circuit breaker and the code after tripping 
       counterTrip = 0;
       LEDs_Off(LED_GREEN);
       LEDs_Off(LED_BLUE);
@@ -271,23 +265,33 @@ void AnalogLoopbackThread(void* pData)
     }
     if(ChannelsData[analogData->channelNb].currentRMS > 1.03) //&& (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100)
     {
-      goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS);
+      goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS); // Calculate the goal to reach before tripping 
       oldCurrent = (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100;
-      Analog_Put(0, VOLT_TO_ANALOG(5));
-      LEDs_On(LED_BLUE);
-      counterTrip++;
-      if(counterTrip >= goalTrip)
+      Analog_Put(0, VOLT_TO_ANALOG(5)); // Detecting a currentRMS over 1.03, outputting in time channel
+      LEDs_On(LED_BLUE); // Using LED so don't have to check on DSO
+      counterTrip++; // Incremetnting the count to reach the goal
+      if(counterTrip >= goalTrip) // If goal is reached or beyond
       {
-        Analog_Put(1, VOLT_TO_ANALOG(5));
-        LEDs_On(LED_GREEN);
-        LPTMR0_CSR |= LPTMR_CSR_TEN_MASK;
-        numberTripped.l++;
-        Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
+        Analog_Put(1, VOLT_TO_ANALOG(5)); // Output in channel 2 after "delay"
+        LEDs_On(LED_GREEN); // Using LED to check without DSO
+        LPTMR0_CSR |= LPTMR_CSR_TEN_MASK; // Start timer for reset mode 
+        NumberTripped.l++;
+        OS_EnableInterrupts();
+        Flash_Write16((volatile uint16_t *) Tripped, NumberTripped.l); // Write the number of time tripped to Flash
       }
-      OS_EnableInterrupts();
+      else 
+      {
+        OS_EnableInterrupts();
+      }
     }
     else if(ChannelsData[analogData->channelNb].currentRMS < 1.03)
+    {
       Analog_Put(0, 0);
+      LEDs_Off(LED_BLUE);
+      OS_EnableInterrupts();
+    }
+    else 
+      OS_EnableInterrupts();
 
 
   }
@@ -429,9 +433,9 @@ bool TowerInit(void)
 
   }
 //  if(Tripped->l != 0xffff)
-//    numberTripped.l = _FH(FLASH_DATA_START + 4);
+//    NumberTripped.l = _FH(FLASH_DATA_START + 4);
 //  else
-//    numberTripped.l = 0;
+//    NumberTripped.l = 0;
   PIT_Init(MODULECLK, (void*) &PIT0Callback , NULL);
   return Packet_Init(BAUDRATE, MODULECLK);
 }
@@ -597,6 +601,7 @@ bool DORPackets (void)
 
 
     case DOR_GET_CURRENTS:
+      // conver the current RMS and ouputting it as a packet. MSB is the int part and LSB the float part
       decimalCurrents[0] =  (ChannelsData[0].currentRMS - ((uint8_t) (ChannelsData[0].currentRMS)))*100;
       decimalCurrents[1] =  (ChannelsData[1].currentRMS - ((uint8_t) (ChannelsData[1].currentRMS)))*100;
       decimalCurrents[2] =  (ChannelsData[2].currentRMS - ((uint8_t) (ChannelsData[2].currentRMS)))*100;
@@ -610,7 +615,7 @@ bool DORPackets (void)
       break;
 
     case DOR_GET_TRIPPED:
-
+      //Send the packet including the number of times tripped
       Packet_Put(DOR_COMMAND, DOR_GET_TRIPPED,   Tripped->s.Lo,   Tripped->s.Hi);
       break;
 
@@ -621,8 +626,8 @@ bool DORPackets (void)
 
 
 /*! @brief Triggered during interrupt, toggles green LED
+ * Signaling the analog thread for each channel A, B and C 
  *
- *  @return void
  *  @note Assumes that PIT_Init called
  */
 void PIT0Callback()

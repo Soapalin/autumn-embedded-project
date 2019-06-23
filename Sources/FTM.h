@@ -91,9 +91,9 @@ bool FTM_StartTimer(const TFTMChannel* const aFTMChannel);
  */
 void __attribute__ ((interrupt)) FTM0_ISR(void);
 
-/*! @brief UART Transmit Thread
+/*! @brief FTM Thread 
  *
- * Triggers the Blue LED on reception of valid Packet.
+ * Triggered by being signaled by the ISR 
  */
 void FTMThread(void* pData);
 

@@ -49,10 +49,17 @@ float Real_RMS(TChannelData* channelData);
 
 /*! @brief Converts voltage RMS to current RMS
  *
+ *  @param voltageRMS - voltageRMS to be converted 
  *  @return float - current RMS
  */
 float Current_RMS(float voltageRMS);
 
+
+/*! @brief Calculates the goal to reach before tripping the circuit 
+ *
+ *  @param currentRMS - current that corresponds to the trip goal to reach
+ *  @return uint32_t - goal to reach
+ */
 uint32_t Calculate_TripGoal(float currentRMS);
 
 //

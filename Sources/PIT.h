@@ -58,9 +58,8 @@ void __attribute__ ((interrupt)) PIT0_ISR(void);
 
 /*! @brief PIT Thread
  *
- *Every period, this function is triggered and values of the accelerometer is sent
+ *Every period, this function is triggered and the waveform is sampled.
  */
 void PIT0Thread(void* pData);
-//void PIT1Thread(void* pData);
 
 #endif
