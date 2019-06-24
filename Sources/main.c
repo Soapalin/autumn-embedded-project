@@ -203,6 +203,19 @@ void __attribute__ ((interrupt)) LPTimer_ISR(void)
   LPTMR0_CSR &= ~LPTMR_CSR_TEN_MASK;
   ResetMode = true;
 
+  for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
+  {
+    ChannelsData[analogNb].TotalVoltageSqr = 0;
+    ChannelsData[analogNb].currentRMS = 0;
+    ChannelsData[analogNb].voltageRMS = 0;
+    for(uint8_t i = 0; i < 16; i++)
+    {
+      ChannelsData[analogNb].Voltage[i] = 0;
+      ChannelsData[analogNb].VoltageSqr[i] = 0;
+    }
+  }
+
+
 }
 
 /*! @brief Initialises modules.
@@ -241,9 +254,10 @@ void AnalogLoopbackThread(void* pData)
   #define analogData ((TAnalogThreadData*)pData)
 
 
-  static uint32_t oldCurrent;
-  static uint32_t counterTrip;
-  static uint32_t goalTrip;
+  static uint32_t oldCurrent[NB_ANALOG_CHANNELS];
+  static uint32_t counterTrip[NB_ANALOG_CHANNELS];
+  static uint32_t goalTrip[NB_ANALOG_CHANNELS];
+  static uint32_t oldGoal[NB_ANALOG_CHANNELS];
 
   for (;;)
   {
@@ -252,25 +266,33 @@ void AnalogLoopbackThread(void* pData)
     OS_DisableInterrupts();
     // Get analog sample
     Analog_Get(analogData->channelNb, &analogInputValue); 
-    Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]); // Adding the new sample value to the structure 
-    ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]); // Calculate Voltage RMS of the last 16 samples
-    ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS); // Finding and storing the current RMS in the structure 
     if (ResetMode)
     {
       // Resetting the circuit breaker and the code after tripping 
-      counterTrip = 0;
+      counterTrip[0] = counterTrip[2] = counterTrip[1] = 0;
+      goalTrip[0] = goalTrip[1] = goalTrip[2] = 0;
       LEDs_Off(LED_GREEN);
       LEDs_Off(LED_BLUE);
       ResetMode = false;
     }
+    Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]); // Adding the new sample value to the structure
+    ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]); // Calculate Voltage RMS of the last 16 samples
+    ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS); // Finding and storing the current RMS in the structure
     if (ChannelsData[analogData->channelNb].currentRMS > 1.03) //&& (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100)
     {
-      goalTrip = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS); // Calculate the goal to reach before tripping 
-      oldCurrent = (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100;
+      oldCurrent[analogData->channelNb] = (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100;
+      if(ChannelsData[analogData->channelNb].currentRMS != oldCurrent[analogData->channelNb])
+      {
+        goalTrip[analogData->channelNb] = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS); // Calculate the goal to reach before tripping
+//        if(oldGoal[analogData->channelNb])
+//          counterTrip[analogData->channelNb] = (uint32_t) (((float) (counterTrip[analogData->channelNb]))/ ((float) (oldGoal[analogData->channelNb])))*100/(goalTrip[analogData->channelNb]);
+//        oldGoal[analogData->channelNb] = goalTrip[analogData->channelNb];
+      }
+
       Analog_Put(0, VOLT_TO_ANALOG(5)); // Detecting a currentRMS over 1.03, outputting in time channel
       LEDs_On(LED_BLUE); // Using LED so don't have to check on DSO
-      counterTrip++; // Incremetnting the count to reach the goal
-      if (counterTrip >= goalTrip) // If goal is reached or beyond
+      counterTrip[analogData->channelNb]++; // Incremetnting the count to reach the goal
+      if (counterTrip[analogData->channelNb] >= goalTrip[analogData->channelNb]) // If goal is reached or beyond
       {
         Analog_Put(1, VOLT_TO_ANALOG(5)); // Output in channel 2 after "delay"
         LEDs_On(LED_GREEN); // Using LED to check without DSO
