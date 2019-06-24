@@ -141,6 +141,7 @@ void __attribute__ ((interrupt)) PIT0_ISR(void)
   /* Interrupt needs to be cleared at every ISR*/
   /*  !< Using Timer Flag Register 0 */
   PIT_TFLG0 |= PIT_TFLG_TIF_MASK; /*!< Clearing Timer Interrupt Flag after it is raised by writing 1 to it - p1344*/
+  PeriodComplete++;
   while(OS_SemaphoreSignal(PIT0Semaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
   OS_ISRExit(); //Exit Interrupt
 }

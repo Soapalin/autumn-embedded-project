@@ -57,6 +57,7 @@ static volatile uint8_t *CharacFlash;
 uint16union_t NumberTripped;
 const uint32_t PIT_Period = 1000000000; /*!< 1 second in nano */
 bool ResetMode;
+float Frequency;
 
 //
 //TFTMChannel FTMPacket =
@@ -205,13 +206,13 @@ void __attribute__ ((interrupt)) LPTimer_ISR(void)
 
   for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
   {
-    ChannelsData[analogNb].TotalVoltageSqr = 0;
+    ChannelsData[analogNb].totalvoltageSqr = 0;
     ChannelsData[analogNb].currentRMS = 0;
     ChannelsData[analogNb].voltageRMS = 0;
     for(uint8_t i = 0; i < 16; i++)
     {
-      ChannelsData[analogNb].Voltage[i] = 0;
-      ChannelsData[analogNb].VoltageSqr[i] = 0;
+      ChannelsData[analogNb].voltage[i] = 0;
+      ChannelsData[analogNb].voltageSqr[i] = 0;
     }
   }
 
@@ -275,8 +276,8 @@ void AnalogLoopbackThread(void* pData)
       LEDs_Off(LED_BLUE);
       ResetMode = false;
     }
-    Sliding_Voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]); // Adding the new sample value to the structure
-    ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]); // Calculate Voltage RMS of the last 16 samples
+    Sliding_voltage(ANALOG_TO_VOLT(analogInputValue), &ChannelsData[analogData->channelNb]); // Adding the new sample value to the structure
+    ChannelsData[analogData->channelNb].voltageRMS = Real_RMS(&ChannelsData[analogData->channelNb]); // Calculate voltage RMS of the last 16 samples
     ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS); // Finding and storing the current RMS in the structure
     if (ChannelsData[analogData->channelNb].currentRMS > 1.03) //&& (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100)
     {
@@ -305,6 +306,12 @@ void AnalogLoopbackThread(void* pData)
       {
         OS_EnableInterrupts();
       }
+    }
+    if(PeriodComplete == 16)
+    {
+      uint8_t crossing[2];
+      if(Zero_Crossings(ChannelsData[analogData->channelNb].voltage, crossing))
+        Frequency = Calculate_Frequency(ChannelsData[analogData->channelNb].voltage, crossing);
     }
     else if (ChannelsData[analogData->channelNb].currentRMS < 1.03)
     {
@@ -604,6 +611,7 @@ bool TowerTimePackets(void)
 bool DORPackets (void)
 {
   float decimalCurrents[NB_ANALOG_CHANNELS];
+  float decimalFrequency;
   switch (Packet_Parameter1)
   {
     case DOR_IDMT_CHAR:
@@ -627,13 +635,14 @@ bool DORPackets (void)
       decimalCurrents[0] =  (ChannelsData[0].currentRMS - ((uint8_t) (ChannelsData[0].currentRMS)))*100;
       decimalCurrents[1] =  (ChannelsData[1].currentRMS - ((uint8_t) (ChannelsData[1].currentRMS)))*100;
       decimalCurrents[2] =  (ChannelsData[2].currentRMS - ((uint8_t) (ChannelsData[2].currentRMS)))*100;
-      Packet_Put(DOR_COMMAND, 0, (uint8_t) (decimalCurrents[0]), (uint8_t) ChannelsData[0].currentRMS);
-      Packet_Put(DOR_COMMAND, 1, (uint8_t) (decimalCurrents[1]), (uint8_t) ChannelsData[1].currentRMS);
-      Packet_Put(DOR_COMMAND, 2, (uint8_t) (decimalCurrents[2]), (uint8_t) ChannelsData[2].currentRMS);
+      Packet_Put(DOR_COMMAND_CURRENT, 0, (uint8_t) (decimalCurrents[0]), (uint8_t) ChannelsData[0].currentRMS);
+      Packet_Put(DOR_COMMAND_CURRENT, 1, (uint8_t) (decimalCurrents[1]), (uint8_t) ChannelsData[1].currentRMS);
+      Packet_Put(DOR_COMMAND_CURRENT, 2, (uint8_t) (decimalCurrents[2]), (uint8_t) ChannelsData[2].currentRMS);
       break;
 
     case DOR_GET_FREQUENCY:
-
+      decimalFrequency =  (Frequency - ((uint8_t) (Frequency)))*100;
+      Packet_Put(DOR_COMMAND, 2, (uint8_t) (decimalCurrents[2]), (uint8_t) Frequency);
       break;
 
     case DOR_GET_TRIPPED:

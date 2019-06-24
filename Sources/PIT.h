@@ -16,6 +16,7 @@
 
 
 bool ResetMode;
+uint8_t PeriodComplete;
 
 /*! @brief Sets up the PIT before first use.
  *
