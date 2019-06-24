@@ -19,12 +19,19 @@
 #include "LEDs.h"
 #include "OS.h"
 #include "packet.h"
+#include "analog.h"
+#include "calculation.h"
+#include "Flash.h"
 
 static uint32_t PIT_ModuleClk;
 static void *PITArguments;
 static void (*PITCallback)(void* PITArguments);
 
-OS_ECB* PITSemaphore; //Declare Semaphore
+
+OS_ECB* PIT0Semaphore; //Declare Semaphore
+//OS_ECB* PIT1Semaphore;
+
+
 
 bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userArguments)
 {
@@ -36,38 +43,88 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
 
   PIT_MCR &= ~PIT_MCR_MDIS_MASK; /*!< Bit is 1 by default. Needs to be cleared to enable setup of PIT*/
   PIT_MCR |= PIT_MCR_FRZ_MASK; /*!< Bit Freeze is enabled - the counter is stopped during debug */
-  /*!< using Timer Control Register 0  - Channel 0-3 but choosing 0*/
+  /*!< using Timer Control Register 0, 1, 2 and 3*/
+
+
   PIT_TCTRL0 |= PIT_TCTRL_TIE_MASK; /*!< Enabling Interrupt TIE bit - p 1343 - Interrupt will be requested whenever Timer Interrupt flag is up*/
-  /*!< IRQ RTC seconds = 68
-   * 67%32 = 4 */
+  PIT_TCTRL1 |= PIT_TCTRL_TIE_MASK; // Doing the same as Channel 0 for Channel 1,2,3
+  PIT_TCTRL2 |= PIT_TCTRL_TIE_MASK;
+  PIT_TCTRL3 |= PIT_TCTRL_TIE_MASK;
+
+
+  /*!< IRQ PIT0  = 68
+   * 68%32 = 4 */
   /*!< Using NVICICPR2 & NVICISER2 from table and example in interrupt*/
   NVICICPR2 = (1 << 4);   /*!< Clear any pending interrupts with NVIC */
   NVICISER2 = (1 << 4);  /*!< Enable interrupts with NVIC */
 
-  PITSemaphore = OS_SemaphoreCreate(0); //Create a Semaphore
+  // IRQ PIT1 = 69
+//  NVICICPR2 = (1 << 5);
+//  NVICISER2 = (1 << 5);
+
+  PIT0Semaphore = OS_SemaphoreCreate(0); //Create a Semaphore
+//  PIT1Semaphore = OS_SemaphoreCreate(0);
+
+
   return true;
 
 }
 
-void PIT_Set(const uint32_t period, const bool restart)
+void PIT_Set(const uint32_t period, const bool restart, uint8_t channel)
 {
   if(restart) /*!< if restart == TRUE, restart the timer is disabled, then, new value, then enabled*/
   {
-    PIT_Enable(false);
+    PIT_Enable(false, channel);
   }
   // Read p 1345 of reference manual - equation found in example of PIT init
   /*!< clock period = 1/ PIT_module clk as it has it to be in terms of seconds*/
   uint32_t clockPeriod = 1000000000/PIT_ModuleClk; /*!< 1/25000000=40 in decimal = 0x28 in hexa*/
   uint32_t triggerLDVAL = (period/clockPeriod) -1;
+  switch(channel)
+  {
+    case 0:
+      PIT_LDVAL0 = triggerLDVAL; /*!< Assign the trigger value at register0. Will assign a number to count down from*/
+      break;
+
+    case 1:
+      PIT_LDVAL1 = triggerLDVAL; /*!< Assign the trigger value at register0. Will assign a number to count down from*/
+      break;
+
+  }
   PIT_LDVAL0 = triggerLDVAL; /*!< Assign the trigger value at register0. Will assign a number to count down from*/
   if(restart) /*!< enabled if restart =true */
   {
-    PIT_Enable(true);
+    PIT_Enable(true, channel);
   }
 }
 
-void PIT_Enable(const bool enable)
+void PIT_Enable(const bool enable, uint8_t channel)
 {
+  switch(channel)
+  {
+    case 0:
+      if(enable)
+      {
+        PIT_TCTRL0 |= PIT_TCTRL_TEN_MASK; /*!< Enable PIT Timer at control register 0*/
+      }
+      else
+      {
+        PIT_TCTRL0 &= ~PIT_TCTRL_TEN_MASK; /*!< disable PIT Time at control Register 0*/
+      }
+      break;
+
+    case 1:
+      if(enable)
+      {
+        PIT_TCTRL1 |= PIT_TCTRL_TEN_MASK; /*!< Enable PIT Timer at control register 0*/
+      }
+      else
+      {
+        PIT_TCTRL1 &= ~PIT_TCTRL_TEN_MASK; /*!< disable PIT Time at control Register 0*/
+      }
+      break;
+
+  }
   if(enable)
   {
     PIT_TCTRL0 |= PIT_TCTRL_TEN_MASK; /*!< Enable PIT Timer at control register 0*/
@@ -78,26 +135,54 @@ void PIT_Enable(const bool enable)
   }
 }
 
-void __attribute__ ((interrupt)) PIT_ISR(void)
+void __attribute__ ((interrupt)) PIT0_ISR(void)
 {
   OS_ISREnter(); //Enter Interrupt
   /* Interrupt needs to be cleared at every ISR*/
   /*  !< Using Timer Flag Register 0 */
   PIT_TFLG0 |= PIT_TFLG_TIF_MASK; /*!< Clearing Timer Interrupt Flag after it is raised by writing 1 to it - p1344*/
-  while(OS_SemaphoreSignal(PITSemaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
+  PeriodComplete++;
+  while(OS_SemaphoreSignal(PIT0Semaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
   OS_ISRExit(); //Exit Interrupt
 }
 
-void PITThread(void* pData)
-{
 
+
+void PIT0Thread(void* pData)
+{
   for(;;)
   {
-    OS_SemaphoreWait(PITSemaphore, 0);
-    LEDs_Toggle(LED_GREEN);
+    OS_SemaphoreWait(PIT0Semaphore, 0);
+    if (PITCallback)
+    {
+      (*PITCallback)(PITArguments);
+    }
   }
-// handles PIT packets
 }
+
+//void PIT1Thread(void* pData)
+//{
+//  for(;;)
+//  {
+//
+//    OS_SemaphoreWait(PIT1Semaphore, 0);
+//    //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
+//    if(!ResetMode)
+//    {
+//      OS_DisableInterrupts();
+//      Analog_Put(1, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
+//      numberTripped.l++;
+//  //    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
+//      ResetMode = true;
+//      PIT_Set(PIT_Period, true, 3);
+//      OS_EnableInterrupts();
+//
+//    }
+//  }
+//}
+
+
+
 
 /*!
 * @}

@@ -159,8 +159,8 @@ void UARTTXThread(void* pData)
     if (UART2_S1 & UART_S1_TDRE_MASK) // Clear TDRE flag by reading it
     {
       FIFO_Get(&TxFIFO,(uint8_t* )&UART2_D);
-      UART2_C2 |= UART_C2_TIE_MASK; // Re-enable transmission interrupt
     }
+    UART2_C2 |= UART_C2_TIE_MASK; // Re-enable transmission interrupt
 
       /*!< if there is nothing to output, FIFO_Get should return false */
   }
