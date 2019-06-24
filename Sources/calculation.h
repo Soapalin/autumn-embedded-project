@@ -12,16 +12,22 @@
 
 typedef struct
 {
-  float Voltage[16];
-  float VoltageSqr[16];
-  float TotalVoltageSqr;
+  float voltage[16];
+  float voltageSqr[16];
+  float totalvoltageSqr;
   float voltageRMS;
   float currentRMS;
 }TChannelData;
 
+typedef struct
+{
+  uint8_t crossing1;
+  uint8_t crossing2;
+}TCrossing;
+
 #define ADC_RATE            3276.7
 #define ANALOG_TO_VOLT(X)   (float) X / (float) ADC_RATE
-#define VOLT_TO_ANALOG(X)   (uint16_t) (float) X * (float) ADC_RATE
+#define VOLT_TO_ANALOG(X)   (int16_t) (float) X * (float) ADC_RATE
 typedef enum
 {
   INVERSE,
@@ -37,9 +43,9 @@ TCharacteristic Current_Charac; // Keeping track of the current mode INVERSE, VE
  * @param data - newest sample taken by uC
  * @param channelData - tracking of indepedent voltages for each channel
  */
-void Sliding_Voltage(float data,TChannelData* channelData);
+void Sliding_voltage(float data,TChannelData* channelData);
 
-/*! @brief Returns the voltage RMS, calculated from global variable TotalVoltageSqr
+/*! @brief Returns the voltage RMS, calculated from global variable TotalvoltageSqr
  *
  *  @param channelData - tracking of indepedent voltages for each channel
  *
@@ -61,5 +67,19 @@ float Current_RMS(float voltageRMS);
  *  @return uint32_t - goal to reach
  */
 uint32_t Calculate_TripGoal(float currentRMS);
+
+/*! @brief Checks for zero crossings
+ *
+ *
+ *  @return bool - TRUE if found zero crossings
+ */
+bool Zero_Crossings(float sample[], TCrossing* crossing);
+
+/*! @brief Calculates the frequency and set PIT from the crossings
+ *
+ *
+ *  @return bool - TRUE if frequency has been set and is between 47.5 and 52.5Hz
+ */
+float Calculate_Frequency(TCrossing* crossing);
 
 //
