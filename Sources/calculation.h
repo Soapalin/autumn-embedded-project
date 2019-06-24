@@ -19,6 +19,12 @@ typedef struct
   float currentRMS;
 }TChannelData;
 
+typedef struct
+{
+  uint8_t crossing1;
+  uint8_t crossing2;
+}TCrossing;
+
 #define ADC_RATE            3276.7
 #define ANALOG_TO_VOLT(X)   (float) X / (float) ADC_RATE
 #define VOLT_TO_ANALOG(X)   (int16_t) (float) X * (float) ADC_RATE
@@ -67,13 +73,13 @@ uint32_t Calculate_TripGoal(float currentRMS);
  *
  *  @return bool - TRUE if found zero crossings
  */
-bool Zero_Crossings(float sample[], uint8_t crossing[]);
+bool Zero_Crossings(float sample[], TCrossing* crossing);
 
 /*! @brief Calculates the frequency and set PIT from the crossings
  *
  *
  *  @return bool - TRUE if frequency has been set and is between 47.5 and 52.5Hz
  */
-float Calculate_Frequency(uint8_t crossing[]);
+float Calculate_Frequency(TCrossing* crossing);
 
 //

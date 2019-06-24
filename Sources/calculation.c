@@ -64,46 +64,57 @@ uint32_t Calculate_TripGoal(float currentRMS)
   return TripTimes[Current_Charac][index-103];
 }
 
-bool Zero_Crossings(float sample[], uint8_t crossing[])
+bool Zero_Crossings(float sample[], TCrossing* crossing)
 {
-  crossing[0] = crossing[1]; // to check if they have been assigned later on, if they have, they shouldn't be equal
+  OS_DisableInterrupts();
+  crossing->crossing1 = crossing->crossing2; // to check if they have been assigned later on, if they have, they shouldn't be equal
   for (uint8_t i = 0; i < 16; i++)
   {
     if (((sample[i] > 0) && (sample[i+1] < 0)) || ((sample[i] < 0) && (sample[i+1] > 0)))
     {
-      crossing[0] = i;
+      crossing->crossing1 = i;
       break;
     }
   }
 
-  for (uint8_t i = crossing[0] + 2; i < 16; i++)
+  for (uint8_t i = crossing->crossing1 + 2; i < 16; i++)
   {
     if (((sample[i] > 0) && (sample[i+1] < 0)) || ((sample[i] < 0) && (sample[i+1] > 0)))
     {
-      crossing[1] = i;
+      crossing->crossing2 = i;
       break;
     }
   }
 
-  if(crossing[0] == crossing[1])
+  if(crossing->crossing1 == crossing->crossing2)
+  {
     return false;
+  }
   else
+  {
     return true;
+  }
+
 }
 
 
 
-float Calculate_Frequency(uint8_t crossing[])
+float Calculate_Frequency(TCrossing* crossing)
 {
-  if(Zero_Crossings(sample, crossing))
+  OS_DisableInterrupts();
+  float period = 2*(crossing->crossing2 - crossing->crossing1);
+  period = period/1000;
+  float frequency = (1/period);
+  if (frequency > 47.5 && frequency < 52.5)
   {
-    float period = 2*(crossing[1] - crossing[0])/1000;
-    float frequency = (float)(1/period);
-    if (frequency > 47.5 && frequency < 52.5)
-    {
-      PIT_Set((uint32_t) (period*1e9), true, 0);
-    }
+    PIT_Set((uint32_t) (period*1e9), true, 0);
+    OS_EnableInterrupts();
     return frequency;
+  }
+  else
+  {
+    OS_EnableInterrupts();
+    return 50;
   }
 
 }
