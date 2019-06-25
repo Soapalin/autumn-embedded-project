@@ -65,6 +65,7 @@ uint32_t Calculate_TripGoal(float currentRMS)
   return TripTimes[Current_Charac][index-103]; // Minusing 103 because not using current under 1.03 A
 }
 
+
 bool Zero_Crossings(float sample[], TCrossing* crossing)
 {
   OS_DisableInterrupts();
@@ -97,7 +98,6 @@ bool Zero_Crossings(float sample[], TCrossing* crossing)
   }
 
 }
-
 
 
 float Calculate_Frequency(TCrossing* crossing)

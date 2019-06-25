@@ -1314,7 +1314,7 @@ LOAD d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/f
                 0x000006ec       0x22 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtn.o
 OUTPUT(Project.elf elf32-littlearm)
 
-.debug_info     0x00000000     0x700c
+.debug_info     0x00000000     0x700b
  .debug_info    0x00000000      0x227 ./Sources/FIFO.o
  .debug_info    0x00000227      0x849 ./Sources/FTM.o
  .debug_info    0x00000a70      0x6c8 ./Sources/Flash.o
@@ -1323,14 +1323,14 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_info    0x00001c92      0x721 ./Sources/RTC.o
  .debug_info    0x000023b3      0xa49 ./Sources/UART.o
  .debug_info    0x00002dfc      0x38f ./Sources/calculation.o
- .debug_info    0x0000318b      0xd1d ./Sources/main.o
- .debug_info    0x00003ea8      0x318 ./Sources/packet.o
- .debug_info    0x000041c0      0x3b0 ./Project_Settings/Startup_Code/startup.o
- .debug_info    0x00004570      0xc82 ./Generated_Code/Cpu.o
- .debug_info    0x000051f2      0x14e ./Generated_Code/Vectors.o
- .debug_info    0x00005340      0xd02 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- .debug_info    0x00006042      0x56a D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
- .debug_info    0x000065ac      0xa60 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+ .debug_info    0x0000318b      0xd1c ./Sources/main.o
+ .debug_info    0x00003ea7      0x318 ./Sources/packet.o
+ .debug_info    0x000041bf      0x3b0 ./Project_Settings/Startup_Code/startup.o
+ .debug_info    0x0000456f      0xc82 ./Generated_Code/Cpu.o
+ .debug_info    0x000051f1      0x14e ./Generated_Code/Vectors.o
+ .debug_info    0x0000533f      0xd02 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ .debug_info    0x00006041      0x56a D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+ .debug_info    0x000065ab      0xa60 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
 .debug_abbrev   0x00000000     0x19c6
  .debug_abbrev  0x00000000       0xd7 ./Sources/FIFO.o
