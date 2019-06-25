@@ -194,6 +194,7 @@ void LPTMRInit(const int count)
  */
 void __attribute__ ((interrupt)) LPTimer_ISR(void)
 {
+  OS_ISREnter(); //Enter Interrupt
   // Clear interrupt flag
   LPTMR0_CSR |= LPTMR_CSR_TCF_MASK;
   LPTMR0_CSR &= ~LPTMR_CSR_TEN_MASK;
@@ -210,7 +211,7 @@ void __attribute__ ((interrupt)) LPTimer_ISR(void)
       ChannelsData[analogNb].voltageSqr[i] = 0;
     }
   }
-
+  OS_ISRExit(); //Exit Interrupt
 
 }
 
