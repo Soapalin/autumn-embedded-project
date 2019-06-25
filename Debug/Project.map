@@ -301,8 +301,6 @@ Discarded input sections
                 0x00000000        0x1 ./Sources/main.o
  .rodata.PIT_Period
                 0x00000000        0x4 ./Sources/main.o
- .bss.oldGoal.7435
-                0x00000000        0xc ./Sources/main.o
  .debug_macro   0x00000000      0x850 ./Sources/main.o
  .debug_macro   0x00000000       0x16 ./Sources/main.o
  .debug_macro   0x00000000       0x44 ./Sources/main.o
@@ -624,7 +622,7 @@ LOAD d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/f
                 0x00000400                _cfm
                 0x00000410                . = ALIGN (0x4)
 
-.text           0x00000410     0x445c
+.text           0x00000410     0x452c
                 0x00000410                . = ALIGN (0x4)
  *(.text)
  .text          0x00000410       0x54 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
@@ -790,272 +788,271 @@ LOAD d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/f
                 0x00002060       0x94 ./Sources/main.o
  *fill*         0x000020f4        0x4 
  .text.AnalogLoopbackThread
-                0x000020f8      0x2b0 ./Sources/main.o
+                0x000020f8      0x388 ./Sources/main.o
                 0x000020f8                AnalogLoopbackThread
- .text.main     0x000023a8      0x108 ./Sources/main.o
-                0x000023a8                main
+ .text.main     0x00002480      0x108 ./Sources/main.o
+                0x00002480                main
  .text.PacketHandler
-                0x000024b0       0xe8 ./Sources/main.o
-                0x000024b0                PacketHandler
+                0x00002588       0xe8 ./Sources/main.o
+                0x00002588                PacketHandler
  .text.TowerInit
-                0x00002598      0x10c ./Sources/main.o
-                0x00002598                TowerInit
+                0x00002670      0x10c ./Sources/main.o
+                0x00002670                TowerInit
  .text.StartupPackets
-                0x000026a4       0x70 ./Sources/main.o
-                0x000026a4                StartupPackets
+                0x0000277c       0x70 ./Sources/main.o
+                0x0000277c                StartupPackets
  .text.TowerNumberPackets
-                0x00002714       0x78 ./Sources/main.o
-                0x00002714                TowerNumberPackets
+                0x000027ec       0x78 ./Sources/main.o
+                0x000027ec                TowerNumberPackets
  .text.TowerModePackets
-                0x0000278c       0x7c ./Sources/main.o
-                0x0000278c                TowerModePackets
+                0x00002864       0x7c ./Sources/main.o
+                0x00002864                TowerModePackets
  .text.VersionPackets
-                0x00002808       0x18 ./Sources/main.o
-                0x00002808                VersionPackets
+                0x000028e0       0x18 ./Sources/main.o
+                0x000028e0                VersionPackets
  .text.ProgramBytePackets
-                0x00002820       0x48 ./Sources/main.o
-                0x00002820                ProgramBytePackets
+                0x000028f8       0x48 ./Sources/main.o
+                0x000028f8                ProgramBytePackets
  .text.ReadBytePackets
-                0x00002868       0x30 ./Sources/main.o
-                0x00002868                ReadBytePackets
+                0x00002940       0x30 ./Sources/main.o
+                0x00002940                ReadBytePackets
  .text.TowerTimePackets
-                0x00002898       0x54 ./Sources/main.o
-                0x00002898                TowerTimePackets
+                0x00002970       0x54 ./Sources/main.o
+                0x00002970                TowerTimePackets
  .text.DORPackets
-                0x000028ec      0x1f0 ./Sources/main.o
-                0x000028ec                DORPackets
+                0x000029c4      0x1f0 ./Sources/main.o
+                0x000029c4                DORPackets
  .text.PIT0Callback
-                0x00002adc       0x30 ./Sources/main.o
-                0x00002adc                PIT0Callback
+                0x00002bb4       0x30 ./Sources/main.o
+                0x00002bb4                PIT0Callback
  .text.Packet_Init
-                0x00002b0c       0x1c ./Sources/packet.o
-                0x00002b0c                Packet_Init
+                0x00002be4       0x1c ./Sources/packet.o
+                0x00002be4                Packet_Init
  .text.Packet_Get
-                0x00002b28      0x11c ./Sources/packet.o
-                0x00002b28                Packet_Get
+                0x00002c00      0x11c ./Sources/packet.o
+                0x00002c00                Packet_Get
  .text.Packet_Put
-                0x00002c44       0x54 ./Sources/packet.o
-                0x00002c44                Packet_Put
+                0x00002d1c       0x54 ./Sources/packet.o
+                0x00002d1c                Packet_Put
  .text.Checksum_Calculation
-                0x00002c98       0x30 ./Sources/packet.o
-                0x00002c98                Checksum_Calculation
+                0x00002d70       0x30 ./Sources/packet.o
+                0x00002d70                Checksum_Calculation
  .text.__copy_rom_section
-                0x00002cc8       0xe4 ./Project_Settings/Startup_Code/startup.o
-                0x00002cc8                __copy_rom_section
+                0x00002da0       0xe4 ./Project_Settings/Startup_Code/startup.o
+                0x00002da0                __copy_rom_section
  .text.__copy_rom_sections_to_ram
-                0x00002dac       0x9c ./Project_Settings/Startup_Code/startup.o
-                0x00002dac                __copy_rom_sections_to_ram
+                0x00002e84       0x9c ./Project_Settings/Startup_Code/startup.o
+                0x00002e84                __copy_rom_sections_to_ram
  .text.__init_registers
-                0x00002e48       0x20 ./Project_Settings/Startup_Code/startup.o
-                0x00002e48                __init_registers
+                0x00002f20       0x20 ./Project_Settings/Startup_Code/startup.o
+                0x00002f20                __init_registers
  .text.__init_user
-                0x00002e68        0xc ./Project_Settings/Startup_Code/startup.o
-                0x00002e68                __init_user
+                0x00002f40        0xc ./Project_Settings/Startup_Code/startup.o
+                0x00002f40                __init_user
  .text.__thumb_startup
-                0x00002e74       0x34 ./Project_Settings/Startup_Code/startup.o
-                0x00002e74                __thumb_startup
+                0x00002f4c       0x34 ./Project_Settings/Startup_Code/startup.o
+                0x00002f4c                __thumb_startup
  .text.Cpu_Interrupt
-                0x00002ea8       0x18 ./Generated_Code/Cpu.o
-                0x00002ea8                Cpu_Interrupt
+                0x00002f80       0x18 ./Generated_Code/Cpu.o
+                0x00002f80                Cpu_Interrupt
  .text.__init_hardware
-                0x00002ec0      0x1cc ./Generated_Code/Cpu.o
-                0x00002ec0                __init_hardware
+                0x00002f98      0x1cc ./Generated_Code/Cpu.o
+                0x00002f98                __init_hardware
  .text.Cpu_SetBASEPRI
-                0x0000308c       0x18 ./Generated_Code/Cpu.o
-                0x0000308c                Cpu_SetBASEPRI
+                0x00003164       0x18 ./Generated_Code/Cpu.o
+                0x00003164                Cpu_SetBASEPRI
  .text.PE_low_level_init
-                0x000030a4       0xe4 ./Generated_Code/Cpu.o
-                0x000030a4                PE_low_level_init
- .text.OS_Init  0x00003188      0x110 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x00003188                OS_Init
+                0x0000317c       0xe4 ./Generated_Code/Cpu.o
+                0x0000317c                PE_low_level_init
+ .text.OS_Init  0x00003260      0x110 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x00003260                OS_Init
  .text.OS_ISREnter
-                0x00003298       0x20 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x00003298                OS_ISREnter
+                0x00003370       0x20 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x00003370                OS_ISREnter
  .text.OS_ISRExit
-                0x000032b8       0x1c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x000032b8                OS_ISRExit
+                0x00003390       0x1c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x00003390                OS_ISRExit
  .text.OS_SemaphoreCreate
-                0x000032d4       0x90 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x000032d4                OS_SemaphoreCreate
+                0x000033ac       0x90 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x000033ac                OS_SemaphoreCreate
  .text.OS_SemaphoreSignal
-                0x00003364       0x44 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x00003364                OS_SemaphoreSignal
+                0x0000343c       0x44 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x0000343c                OS_SemaphoreSignal
  .text.OS_SemaphoreWait
-                0x000033a8       0x58 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x000033a8                OS_SemaphoreWait
+                0x00003480       0x58 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x00003480                OS_SemaphoreWait
  .text.OS_Start
-                0x00003400       0x10 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x00003400                OS_Start
+                0x000034d8       0x10 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x000034d8                OS_Start
  .text.OS_ThreadCreate
-                0x00003410      0x160 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x00003410                OS_ThreadCreate
+                0x000034e8      0x160 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x000034e8                OS_ThreadCreate
  .text.OS_ThreadDelete
-                0x00003570      0x18c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x00003570                OS_ThreadDelete
+                0x00003648      0x18c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x00003648                OS_ThreadDelete
  .text.EventThreadReady
-                0x000036fc       0x68 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x000037d4       0x68 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .text.EventThreadWait
-                0x00003764       0x64 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x0000383c       0x64 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .text.EventTimeout
-                0x000037c8       0x40 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- .text.Idle     0x00003808       0x18 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x000038a0       0x40 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ .text.Idle     0x000038e0       0x18 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .text.FindFirstSet
-                0x00003820       0x44 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x000038f8       0x44 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .text.Schedule
-                0x00003864       0x64 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- .text.TCBInit  0x000038c8       0xcc D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x0000393c       0x64 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ .text.TCBInit  0x000039a0       0xcc D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .text.TimeTick
-                0x00003994       0x74 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- *fill*         0x00003a08        0x8 
+                0x00003a6c       0x74 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .text.OS_ContextSwitchISR
-                0x00003a10       0x70 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x00003a10                OS_ContextSwitchISR
+                0x00003ae0       0x70 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x00003ae0                OS_ContextSwitchISR
  .text.OS_SysTickISR
-                0x00003a80       0x5c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
-                0x00003a80                OS_SysTickISR
+                0x00003b50       0x5c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x00003b50                OS_SysTickISR
  .text.DACWrite
-                0x00003adc       0x6c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+                0x00003bac       0x6c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
  .text.Analog_Init
-                0x00003b48      0x100 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
-                0x00003b48                Analog_Init
+                0x00003c18      0x100 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+                0x00003c18                Analog_Init
  .text.Analog_Get
-                0x00003c48       0x78 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
-                0x00003c48                Analog_Get
+                0x00003d18       0x78 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+                0x00003d18                Analog_Get
  .text.Analog_Put
-                0x00003cc0       0x50 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
-                0x00003cc0                Analog_Put
+                0x00003d90       0x50 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+                0x00003d90                Analog_Put
  .text.InitChipSelectPins
-                0x00003d10       0x6c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+                0x00003de0       0x6c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
  .text.SetupModuleConfigurationRegister
-                0x00003d7c      0x104 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+                0x00003e4c      0x104 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
  .text.SetBaudRate
-                0x00003e80      0x15c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+                0x00003f50      0x15c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
  .text.SetDelayAfterTransfer
-                0x00003fdc      0x168 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+                0x000040ac      0x168 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
  .text.SetupClockAndTransferAttributesRegister
-                0x00004144      0x16c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+                0x00004214      0x16c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
  .text.SPI_Init
-                0x000042b0       0x90 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
-                0x000042b0                SPI_Init
+                0x00004380       0x90 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+                0x00004380                SPI_Init
  .text.SPI_SelectSlaveDevice
-                0x00004340       0x6c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
-                0x00004340                SPI_SelectSlaveDevice
+                0x00004410       0x6c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+                0x00004410                SPI_SelectSlaveDevice
  .text.SPI_Exchange
-                0x000043ac       0x94 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
-                0x000043ac                SPI_Exchange
- .text.sqrt     0x00004440       0xbc d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-w_sqrt.o)
-                0x00004440                sqrt
+                0x0000447c       0x94 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+                0x0000447c                SPI_Exchange
+ .text.sqrt     0x00004510       0xbc d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-w_sqrt.o)
+                0x00004510                sqrt
  .text.__ieee754_sqrt
-                0x000044fc      0x198 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-e_sqrt.o)
-                0x000044fc                __ieee754_sqrt
+                0x000045cc      0x198 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-e_sqrt.o)
+                0x000045cc                __ieee754_sqrt
  .text.__fpclassifyd
-                0x00004694       0x54 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-s_fpclassify.o)
-                0x00004694                __fpclassifyd
- .text.matherr  0x000046e8        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-s_matherr.o)
-                0x000046e8                matherr
- .text.__errno  0x000046ec        0xc d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-errno.o)
-                0x000046ec                __errno
- .text.exit     0x000046f8       0x28 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-exit.o)
-                0x000046f8                exit
+                0x00004764       0x54 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-s_fpclassify.o)
+                0x00004764                __fpclassifyd
+ .text.matherr  0x000047b8        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-s_matherr.o)
+                0x000047b8                matherr
+ .text.__errno  0x000047bc        0xc d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-errno.o)
+                0x000047bc                __errno
+ .text.exit     0x000047c8       0x28 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-exit.o)
+                0x000047c8                exit
  .text.__libc_init_array
-                0x00004720       0x4c d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-init.o)
-                0x00004720                __libc_init_array
- .text.memset   0x0000476c       0x10 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-memset.o)
-                0x0000476c                memset
- .text._exit    0x0000477c        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libnosys.a(_exit.o)
-                0x0000477c                _exit
+                0x000047f0       0x4c d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-init.o)
+                0x000047f0                __libc_init_array
+ .text.memset   0x0000483c       0x10 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-memset.o)
+                0x0000483c                memset
+ .text._exit    0x0000484c        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libnosys.a(_exit.o)
+                0x0000484c                _exit
  *(.rodata)
- .rodata        0x00004780        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
- .rodata        0x00004784       0xa0 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+ .rodata        0x00004850        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+ .rodata        0x00004854       0xa0 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
  *(.rodata*)
  .rodata.ANALOG_THREAD_PRIORITIES
-                0x00004824        0x4 ./Sources/main.o
-                0x00004824                ANALOG_THREAD_PRIORITIES
+                0x000048f4        0x4 ./Sources/main.o
+                0x000048f4                ANALOG_THREAD_PRIORITIES
  .rodata.SPI_SETUP
-                0x00004828       0x1c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+                0x000048f8       0x1c D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
  .rodata.str1.4
-                0x00004844        0x8 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-w_sqrt.o)
+                0x00004914        0x8 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libm.a(lib_a-w_sqrt.o)
  .rodata.str1.1
-                0x0000484c        0x2 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-impure.o)
- *fill*         0x0000484e        0x2 
+                0x0000491c        0x2 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-impure.o)
+ *fill*         0x0000491e        0x2 
  .rodata._global_impure_ptr
-                0x00004850        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-impure.o)
-                0x00004850                _global_impure_ptr
+                0x00004920        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu\libg_s.a(lib_a-impure.o)
+                0x00004920                _global_impure_ptr
  *(.glue_7)
  .glue_7        0x00000000        0x0 linker stubs
  *(.glue_7t)
  .glue_7t       0x00000000        0x0 linker stubs
  *(.eh_frame)
- .eh_frame      0x00004854        0x0 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
+ .eh_frame      0x00004924        0x0 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
  *(.init)
- .init          0x00004854        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crti.o
-                0x00004854                _init
- .init          0x00004858        0x8 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtn.o
+ .init          0x00004924        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crti.o
+                0x00004924                _init
+ .init          0x00004928        0x8 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtn.o
  *(.fini)
- .fini          0x00004860        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crti.o
-                0x00004860                _fini
- .fini          0x00004864        0x8 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtn.o
-                0x0000486c                . = ALIGN (0x4)
-                0x0000486c                _etext = .
+ .fini          0x00004930        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crti.o
+                0x00004930                _fini
+ .fini          0x00004934        0x8 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtn.o
+                0x0000493c                . = ALIGN (0x4)
+                0x0000493c                _etext = .
 
-.vfp11_veneer   0x0000486c        0x0
+.vfp11_veneer   0x0000493c        0x0
  .vfp11_veneer  0x00000000        0x0 linker stubs
 
-.v4_bx          0x0000486c        0x0
+.v4_bx          0x0000493c        0x0
  .v4_bx         0x00000000        0x0 linker stubs
 
-.iplt           0x0000486c        0x0
+.iplt           0x0000493c        0x0
  .iplt          0x00000000        0x0 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
 
-.ARM            0x0000486c        0x8
-                0x0000486c                __exidx_start = .
+.ARM            0x0000493c        0x8
+                0x0000493c                __exidx_start = .
  *(.ARM.exidx*)
- .ARM.exidx     0x0000486c        0x8 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu/crt0.o
-                0x00004874                __exidx_end = .
+ .ARM.exidx     0x0000493c        0x8 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/../../../../arm-none-eabi/lib/armv7e-m/fpu/crt0.o
+                0x00004944                __exidx_end = .
 
-.rel.dyn        0x00004874        0x0
+.rel.dyn        0x00004944        0x0
  .rel.iplt      0x00000000        0x0 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
 
-.ctors          0x00004874        0x0
-                0x00004874                __CTOR_LIST__ = .
+.ctors          0x00004944        0x0
+                0x00004944                __CTOR_LIST__ = .
  *crtbegin.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o) .ctors)
  *(SORT(.ctors.*))
  *(.ctors)
-                0x00004874                __CTOR_END__ = .
+                0x00004944                __CTOR_END__ = .
 
-.dtors          0x00004874        0x0
-                0x00004874                __DTOR_LIST__ = .
+.dtors          0x00004944        0x0
+                0x00004944                __DTOR_LIST__ = .
  *crtbegin.o(.dtors)
  *(EXCLUDE_FILE(*crtend.o) .dtors)
  *(SORT(.dtors.*))
  *(.dtors)
-                0x00004874                __DTOR_END__ = .
+                0x00004944                __DTOR_END__ = .
 
-.preinit_array  0x00004874        0x0
-                0x00004874                PROVIDE (__preinit_array_start, .)
+.preinit_array  0x00004944        0x0
+                0x00004944                PROVIDE (__preinit_array_start, .)
  *(.preinit_array*)
-                0x00004874                PROVIDE (__preinit_array_end, .)
+                0x00004944                PROVIDE (__preinit_array_end, .)
 
-.init_array     0x00004874        0x4
-                0x00004874                PROVIDE (__init_array_start, .)
+.init_array     0x00004944        0x4
+                0x00004944                PROVIDE (__init_array_start, .)
  *(SORT(.init_array.*))
  *(.init_array*)
- .init_array    0x00004874        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
-                0x00004878                PROVIDE (__init_array_end, .)
+ .init_array    0x00004944        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
+                0x00004948                PROVIDE (__init_array_end, .)
 
-.fini_array     0x00004878        0x4
-                0x00004878                PROVIDE (__fini_array_start, .)
+.fini_array     0x00004948        0x4
+                0x00004948                PROVIDE (__fini_array_start, .)
  *(SORT(.fini_array.*))
  *(.fini_array*)
- .fini_array    0x00004878        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
-                0x0000487c                PROVIDE (__fini_array_end, .)
-                0x0000487c                ___ROM_AT = .
+ .fini_array    0x00004948        0x4 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
+                0x0000494c                PROVIDE (__fini_array_end, .)
+                0x0000494c                ___ROM_AT = .
 
-.data           0x1fff0000     0x597c load address 0x0000487c
+.data           0x1fff0000     0x597c load address 0x0000494c
                 0x1fff0000                . = ALIGN (0x4)
                 0x1fff0000                _sdata = .
  *(.data)
@@ -1079,16 +1076,16 @@ LOAD d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/f
                 0x1fff597c                . = ALIGN (0x4)
                 0x1fff597c                _edata = .
                 0x0000597c                ___data_size = (_edata - _sdata)
-                0x0000a1f8                ___m_data_20000000_ROMStart = (___ROM_AT + SIZEOF (.data))
+                0x0000a2c8                ___m_data_20000000_ROMStart = (___ROM_AT + SIZEOF (.data))
 
-.jcr            0x1fff597c        0x0 load address 0x0000a1f8
+.jcr            0x1fff597c        0x0 load address 0x0000a2c8
  .jcr           0x1fff597c        0x0 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
 
-.igot.plt       0x1fff597c        0x0 load address 0x0000a1f8
+.igot.plt       0x1fff597c        0x0 load address 0x0000a2c8
  .igot.plt      0x00000000        0x0 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtbegin.o
 
 .m_data_20000000
-                0x20000000        0x0 load address 0x0000a1f8
+                0x20000000        0x0 load address 0x0000a2c8
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                ___m_data_20000000_RAMStart = .
  *(.m_data_20000000)
@@ -1097,7 +1094,7 @@ LOAD d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/f
                 0x00000000                ___m_data_20000000_ROMSize = (___m_data_20000000_RAMEnd - ___m_data_20000000_RAMStart)
                 0x20000000                . = ALIGN (0x4)
 
-.bss            0x1fff5980     0x1a80 load address 0x0000a200
+.bss            0x1fff5980     0x1a88 load address 0x0000a2d0
                 0x1fff5980                __START_BSS = .
                 0x1fff5980                PROVIDE (__bss_start__, __START_BSS)
  *(.bss)
@@ -1139,103 +1136,104 @@ LOAD d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/f
                 0x1fff686c        0xc ./Sources/main.o
  .bss.oldCurrent.7432
                 0x1fff6878        0xc ./Sources/main.o
+ .bss.oldGoal.7435
+                0x1fff6884        0xc ./Sources/main.o
  .bss.packetComplete.6635
-                0x1fff6884        0x1 ./Sources/packet.o
- .bss.SR_lock   0x1fff6885        0x1 ./Generated_Code/Cpu.o
-                0x1fff6885                SR_lock
- *fill*         0x1fff6886        0x2 
+                0x1fff6890        0x1 ./Sources/packet.o
+ .bss.SR_lock   0x1fff6891        0x1 ./Generated_Code/Cpu.o
+                0x1fff6891                SR_lock
+ *fill*         0x1fff6892        0x2 
  .bss.TCBUnusedMain
-                0x1fff6888       0x18 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- .bss.TCBTable  0x1fff68a0      0x300 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff6894       0x18 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ .bss.TCBTable  0x1fff68ac      0x300 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.pTCBFreeList
-                0x1fff6ba0        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff6bac        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.pTCBAllocatedList
-                0x1fff6ba4        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff6bb0        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.pTCBPriorityTable
-                0x1fff6ba8       0x80 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff6bb4       0x80 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.pTCBRunning
-                0x1fff6c28        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff6c34        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.pTCBHighestReady
-                0x1fff6c2c        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff6c38        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.ReadyList
-                0x1fff6c30        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- .bss.ECBTable  0x1fff6c34      0x100 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff6c3c        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ .bss.ECBTable  0x1fff6c40      0x100 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.NextECBFree
-                0x1fff6d34        0x1 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- *fill*         0x1fff6d35        0x3 
+                0x1fff6d40        0x1 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ *fill*         0x1fff6d41        0x3 
  .bss.IdleCounter
-                0x1fff6d38        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- *fill*         0x1fff6d3c        0x4 
+                0x1fff6d44        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.IdleStack
-                0x1fff6d40      0x400 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- .bss.Ticks     0x1fff7140        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff6d48      0x400 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ .bss.Ticks     0x1fff7148        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.ToggleCntr
-                0x1fff7144        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff714c        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.ToggleLED
-                0x1fff7148        0x1 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+                0x1fff7150        0x1 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
  .bss.ISRNestLevel
-                0x1fff7149        0x1 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- *fill*         0x1fff714a        0x2 
+                0x1fff7151        0x1 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ *fill*         0x1fff7152        0x2 
  .bss.ADCCommandUnion
-                0x1fff714c        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+                0x1fff7154        0x4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
  *(COMMON)
- COMMON         0x1fff7150       0x3c ./Sources/FTM.o
-                0x1fff7150                FTM0_Callback
-                0x1fff716c                FTM0_Arguments
-                0x1fff7188                FTMSemaphore
- COMMON         0x1fff718c        0x7 ./Sources/PIT.o
-                0x1fff718c                PIT0Semaphore
-                0x1fff7190                Current_Charac
-                0x1fff7191                ResetMode
-                0x1fff7192                PeriodComplete
- *fill*         0x1fff7193        0x1 
- COMMON         0x1fff7194        0x4 ./Sources/RTC.o
-                0x1fff7194                RTCSemaphore
- COMMON         0x1fff7198        0x8 ./Sources/UART.o
-                0x1fff7198                UARTTXSemaphore
-                0x1fff719c                UARTRXSemaphore
- COMMON         0x1fff71a0      0x1b0 ./Sources/main.o
-                0x1fff71a0                PacketHandlerSemaphore
-                0x1fff71a4                Frequency
-                0x1fff71a8                NumberTripped
-                0x1fff71ac                ChannelsData
- COMMON         0x1fff7350        0x8 ./Sources/packet.o
-                0x1fff7350                Packet
- COMMON         0x1fff7358        0x1 ./Generated_Code/Cpu.o
-                0x1fff7358                SR_reg
- *fill*         0x1fff7359        0x3 
- COMMON         0x1fff735c       0xa4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
-                0x1fff735c                Analog_Inputs
-                0x1fff73fc                DACInput
-                0x1fff7400                . = ALIGN (0x4)
-                0x1fff7400                __END_BSS = .
-                0x1fff7400                PROVIDE (__bss_end__, __END_BSS)
-                0x0000a1f8                _romp_at = ((___ROM_AT + SIZEOF (.data)) + SIZEOF (.m_data_20000000))
+ COMMON         0x1fff7158       0x3c ./Sources/FTM.o
+                0x1fff7158                FTM0_Callback
+                0x1fff7174                FTM0_Arguments
+                0x1fff7190                FTMSemaphore
+ COMMON         0x1fff7194        0x7 ./Sources/PIT.o
+                0x1fff7194                PIT0Semaphore
+                0x1fff7198                Current_Charac
+                0x1fff7199                ResetMode
+                0x1fff719a                PeriodComplete
+ *fill*         0x1fff719b        0x1 
+ COMMON         0x1fff719c        0x4 ./Sources/RTC.o
+                0x1fff719c                RTCSemaphore
+ COMMON         0x1fff71a0        0x8 ./Sources/UART.o
+                0x1fff71a0                UARTTXSemaphore
+                0x1fff71a4                UARTRXSemaphore
+ COMMON         0x1fff71a8      0x1b0 ./Sources/main.o
+                0x1fff71a8                PacketHandlerSemaphore
+                0x1fff71ac                Frequency
+                0x1fff71b0                NumberTripped
+                0x1fff71b4                ChannelsData
+ COMMON         0x1fff7358        0x8 ./Sources/packet.o
+                0x1fff7358                Packet
+ COMMON         0x1fff7360        0x1 ./Generated_Code/Cpu.o
+                0x1fff7360                SR_reg
+ *fill*         0x1fff7361        0x3 
+ COMMON         0x1fff7364       0xa4 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+                0x1fff7364                Analog_Inputs
+                0x1fff7404                DACInput
+                0x1fff7408                . = ALIGN (0x4)
+                0x1fff7408                __END_BSS = .
+                0x1fff7408                PROVIDE (__bss_end__, __END_BSS)
+                0x0000a2c8                _romp_at = ((___ROM_AT + SIZEOF (.data)) + SIZEOF (.m_data_20000000))
 
-.romp           0x1fff7400       0x24 load address 0x0000a1f8
-                0x0000a1f8                __S_romp = _romp_at
-                0x1fff7400        0x4 LONG 0x487c ___ROM_AT
-                0x1fff7404        0x4 LONG 0x1fff0000 _sdata
-                0x1fff7408        0x4 LONG 0x597c ___data_size
-                0x1fff740c        0x4 LONG 0xa1f8 ___m_data_20000000_ROMStart
-                0x1fff7410        0x4 LONG 0x20000000 ___m_data_20000000_RAMStart
-                0x1fff7414        0x4 LONG 0x0 ___m_data_20000000_ROMSize
-                0x1fff7418        0x4 LONG 0x0
-                0x1fff741c        0x4 LONG 0x0
+.romp           0x1fff7408       0x24 load address 0x0000a2c8
+                0x0000a2c8                __S_romp = _romp_at
+                0x1fff7408        0x4 LONG 0x494c ___ROM_AT
+                0x1fff740c        0x4 LONG 0x1fff0000 _sdata
+                0x1fff7410        0x4 LONG 0x597c ___data_size
+                0x1fff7414        0x4 LONG 0xa2c8 ___m_data_20000000_ROMStart
+                0x1fff7418        0x4 LONG 0x20000000 ___m_data_20000000_RAMStart
+                0x1fff741c        0x4 LONG 0x0 ___m_data_20000000_ROMSize
                 0x1fff7420        0x4 LONG 0x0
+                0x1fff7424        0x4 LONG 0x0
+                0x1fff7428        0x4 LONG 0x0
 
 ._user_heap_stack
-                0x1fff7424      0x400 load address 0x0000a21c
-                0x1fff7424                . = ALIGN (0x4)
-                0x1fff7424                PROVIDE (end, .)
-                0x1fff7424                PROVIDE (_end, .)
-                0x1fff7424                __heap_addr = .
-                0x1fff7424                __HeapBase = .
-                0x1fff7424                . = (. + __heap_size)
-                0x1fff7424                __HeapLimit = .
-                0x1fff7824                . = (. + __stack_size)
- *fill*         0x1fff7424      0x400 
-                0x1fff7824                . = ALIGN (0x4)
+                0x1fff742c      0x400 load address 0x0000a2ec
+                0x1fff742c                . = ALIGN (0x4)
+                0x1fff742c                PROVIDE (end, .)
+                0x1fff742c                PROVIDE (_end, .)
+                0x1fff742c                __heap_addr = .
+                0x1fff742c                __HeapBase = .
+                0x1fff742c                . = (. + __heap_size)
+                0x1fff742c                __HeapLimit = .
+                0x1fff782c                . = (. + __stack_size)
+ *fill*         0x1fff742c      0x400 
+                0x1fff782c                . = ALIGN (0x4)
 
 .ARM.attributes
                 0x00000000       0x30
@@ -1314,7 +1312,7 @@ LOAD d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/f
                 0x000006ec       0x22 d:/freescale/kds_v3/toolchain/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtn.o
 OUTPUT(Project.elf elf32-littlearm)
 
-.debug_info     0x00000000     0x700c
+.debug_info     0x00000000     0x700b
  .debug_info    0x00000000      0x227 ./Sources/FIFO.o
  .debug_info    0x00000227      0x849 ./Sources/FTM.o
  .debug_info    0x00000a70      0x6c8 ./Sources/Flash.o
@@ -1323,14 +1321,14 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_info    0x00001c92      0x721 ./Sources/RTC.o
  .debug_info    0x000023b3      0xa49 ./Sources/UART.o
  .debug_info    0x00002dfc      0x38f ./Sources/calculation.o
- .debug_info    0x0000318b      0xd1d ./Sources/main.o
- .debug_info    0x00003ea8      0x318 ./Sources/packet.o
- .debug_info    0x000041c0      0x3b0 ./Project_Settings/Startup_Code/startup.o
- .debug_info    0x00004570      0xc82 ./Generated_Code/Cpu.o
- .debug_info    0x000051f2      0x14e ./Generated_Code/Vectors.o
- .debug_info    0x00005340      0xd02 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- .debug_info    0x00006042      0x56a D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
- .debug_info    0x000065ac      0xa60 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+ .debug_info    0x0000318b      0xd1c ./Sources/main.o
+ .debug_info    0x00003ea7      0x318 ./Sources/packet.o
+ .debug_info    0x000041bf      0x3b0 ./Project_Settings/Startup_Code/startup.o
+ .debug_info    0x0000456f      0xc82 ./Generated_Code/Cpu.o
+ .debug_info    0x000051f1      0x14e ./Generated_Code/Vectors.o
+ .debug_info    0x0000533f      0xd02 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ .debug_info    0x00006041      0x56a D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+ .debug_info    0x000065ab      0xa60 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
 .debug_abbrev   0x00000000     0x19c6
  .debug_abbrev  0x00000000       0xd7 ./Sources/FIFO.o
@@ -1459,7 +1457,7 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_macro   0x00035916       0x16 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
  .debug_macro   0x0003592c       0x68 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
-.debug_line     0x00000000     0x344d
+.debug_line     0x00000000     0x345c
  .debug_line    0x00000000      0x2ee ./Sources/FIFO.o
  .debug_line    0x000002ee      0x33f ./Sources/FTM.o
  .debug_line    0x0000062d      0x322 ./Sources/Flash.o
@@ -1468,14 +1466,14 @@ OUTPUT(Project.elf elf32-littlearm)
  .debug_line    0x00000eff      0x2d1 ./Sources/RTC.o
  .debug_line    0x000011d0      0x36e ./Sources/UART.o
  .debug_line    0x0000153e      0x32a ./Sources/calculation.o
- .debug_line    0x00001868      0x624 ./Sources/main.o
- .debug_line    0x00001e8c      0x320 ./Sources/packet.o
- .debug_line    0x000021ac      0x3e3 ./Project_Settings/Startup_Code/startup.o
- .debug_line    0x0000258f      0x27e ./Generated_Code/Cpu.o
- .debug_line    0x0000280d      0x2bf ./Generated_Code/Vectors.o
- .debug_line    0x00002acc      0x496 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
- .debug_line    0x00002f62      0x218 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
- .debug_line    0x0000317a      0x2d3 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
+ .debug_line    0x00001868      0x633 ./Sources/main.o
+ .debug_line    0x00001e9b      0x320 ./Sources/packet.o
+ .debug_line    0x000021bb      0x3e3 ./Project_Settings/Startup_Code/startup.o
+ .debug_line    0x0000259e      0x27e ./Generated_Code/Cpu.o
+ .debug_line    0x0000281c      0x2bf ./Generated_Code/Vectors.o
+ .debug_line    0x00002adb      0x496 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libOS.a(OS.o)
+ .debug_line    0x00002f71      0x218 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(analog.o)
+ .debug_line    0x00003189      0x2d3 D:\Autumn 2019\Embedded Software\autumn-embedded-project\Library\libAnalog.a(SPI.o)
 
 .debug_str      0x00000000    0x8fa7c
  .debug_str     0x00000000    0x8a717 ./Sources/FIFO.o

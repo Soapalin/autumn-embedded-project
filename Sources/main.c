@@ -275,13 +275,13 @@ void AnalogLoopbackThread(void* pData)
     ChannelsData[analogData->channelNb].currentRMS =  Current_RMS(ChannelsData[analogData->channelNb].voltageRMS); // Finding and storing the current RMS in the structure
     if (ChannelsData[analogData->channelNb].currentRMS > 1.03) //&& (oldCurrent != (uint32_t) ChannelsData[analogData->channelNb].currentRMS*100)
     {
-      goalTrip[analogData->channelNb] = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS); // Calculate the goal to reach before tripping
-//      if(ChannelsData[analogData->channelNb].currentRMS != oldCurrent[analogData->channelNb])
-//      {
-////        if(oldGoal[analogData->channelNb])
-////          counterTrip[analogData->channelNb] = (uint32_t) (((float) (counterTrip[analogData->channelNb]))/ ((float) (oldGoal[analogData->channelNb])))*100/(goalTrip[analogData->channelNb]);
-////        oldGoal[analogData->channelNb] = goalTrip[analogData->channelNb];
-//      }
+      if ((ChannelsData[analogData->channelNb].currentRMS != oldCurrent[analogData->channelNb]) || (!goalTrip[analogData->channelNb]))
+      {
+        goalTrip[analogData->channelNb] = Calculate_TripGoal(ChannelsData[analogData->channelNb].currentRMS); // Calculate the goal to reach before tripping
+        if(oldGoal[analogData->channelNb])
+          counterTrip[analogData->channelNb] = (uint32_t) (((float) (counterTrip[analogData->channelNb]))/ ((float) (oldGoal[analogData->channelNb])))*100/(goalTrip[analogData->channelNb]);
+        oldGoal[analogData->channelNb] = goalTrip[analogData->channelNb];
+      }
       oldCurrent[analogData->channelNb] = ChannelsData[analogData->channelNb].currentRMS;
 
 
