@@ -12,7 +12,7 @@
 #include "OS.h"
 #include "PIT.h"
 
-
+// Hardcoded 2 dimensional array. first dimension refers to the IDMT characteristic (TCharacteristic). Second dimension is the goal to reach for the circuit to trip. The index corresponds to the current RMS in ms *100  to make it an int
 static float TripTimes[3][1898] =
 {
   {
@@ -25,9 +25,12 @@ static float TripTimes[3][1898] =
 
 void Sliding_voltage(float data, TChannelData* channelData)
 {
+  // Sliding voltage for the voltages and the voltages sqr as well as its total
+  // Voltage sqr is used for the calculation of voltageRMS
+  // Voltage is used to find the zero crossing later on for the frequency
   OS_DisableInterrupts();
-  channelData->totalvoltageSqr += (data*data);
-  channelData->totalvoltageSqr -= channelData->voltageSqr[0];
+  channelData->totalVoltageSqr += (data*data);
+  channelData->totalVoltageSqr -= channelData->voltageSqr[0];
   for(int i = 1; i < 16; i++)
   {
     channelData->voltage[i-1] = channelData->voltage[i];
@@ -41,8 +44,9 @@ void Sliding_voltage(float data, TChannelData* channelData)
 
 float Real_RMS(TChannelData* channelData)
 {
+  // Calculates the voltage RMS using the totalVoltageSqr
   OS_DisableInterrupts();
-  float SqRootRMS = ((channelData->totalvoltageSqr)/16); // Dividing the total of v^2 by the number of sample per period N = 16
+  float SqRootRMS = ((channelData->totalVoltageSqr)/16); // Dividing the total of v^2 by the number of sample per period N = 16
   float voltageRMS = sqrt(SqRootRMS); // Using equation from math.h
   OS_EnableInterrupts();
   return voltageRMS;
@@ -58,10 +62,7 @@ float Current_RMS(float voltageRMS)
 uint32_t Calculate_TripGoal(float currentRMS)
 {
   uint16_t index = (uint16_t)(currentRMS*100);
-//  uint32_t data = (TripTimes[Current_Charac][index-103]*100000);
-//  data = data/125;
-//  return data;
-  return TripTimes[Current_Charac][index-103];
+  return TripTimes[Current_Charac][index-103]; // Minusing 103 because not using current under 1.03 A
 }
 
 bool Zero_Crossings(float sample[], TCrossing* crossing)
@@ -103,7 +104,7 @@ float Calculate_Frequency(TCrossing* crossing)
 {
   OS_DisableInterrupts();
   float period = 2*(crossing->crossing2 - crossing->crossing1);
-  period = period/1000;
+  period = (period*1.25)/1000;
   float frequency = (1/period);
   if (frequency > 47.5 && frequency < 52.5)
   {
@@ -114,7 +115,7 @@ float Calculate_Frequency(TCrossing* crossing)
   else
   {
     OS_EnableInterrupts();
-    return 50;
+    return 0; // Return 0 if the frequency is not between 47.5 and 52.5
   }
 
 }

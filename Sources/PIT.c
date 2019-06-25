@@ -29,8 +29,6 @@ static void (*PITCallback)(void* PITArguments);
 
 
 OS_ECB* PIT0Semaphore; //Declare Semaphore
-//OS_ECB* PIT1Semaphore;
-
 
 
 bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userArguments)
@@ -58,19 +56,13 @@ bool PIT_Init(const uint32_t moduleClk, void (*userFunction)(void*), void* userA
   NVICICPR2 = (1 << 4);   /*!< Clear any pending interrupts with NVIC */
   NVICISER2 = (1 << 4);  /*!< Enable interrupts with NVIC */
 
-  // IRQ PIT1 = 69
-//  NVICICPR2 = (1 << 5);
-//  NVICISER2 = (1 << 5);
-
   PIT0Semaphore = OS_SemaphoreCreate(0); //Create a Semaphore
-//  PIT1Semaphore = OS_SemaphoreCreate(0);
-
 
   return true;
 
 }
 
-void PIT_Set(const uint32_t period, const bool restart, uint8_t channel)
+void PIT_Set(const uint32_t period, const bool restart, uint8_t channel) // Channel were used when using multiple PIT - but has been changed since then - kept it in case needed to use it again
 {
   if(restart) /*!< if restart == TRUE, restart the timer is disabled, then, new value, then enabled*/
   {
@@ -98,7 +90,7 @@ void PIT_Set(const uint32_t period, const bool restart, uint8_t channel)
   }
 }
 
-void PIT_Enable(const bool enable, uint8_t channel)
+void PIT_Enable(const bool enable, uint8_t channel)  // Channel were used when using multiple PIT - but has been changed since then - kept it in case needed to use it again
 {
   switch(channel)
   {
@@ -141,8 +133,8 @@ void __attribute__ ((interrupt)) PIT0_ISR(void)
   /* Interrupt needs to be cleared at every ISR*/
   /*  !< Using Timer Flag Register 0 */
   PIT_TFLG0 |= PIT_TFLG_TIF_MASK; /*!< Clearing Timer Interrupt Flag after it is raised by writing 1 to it - p1344*/
-  PeriodComplete++;
-  while(OS_SemaphoreSignal(PIT0Semaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
+  PeriodComplete++; // Incrementing it to 16 to get the frequency
+  while (OS_SemaphoreSignal(PIT0Semaphore) != OS_NO_ERROR); //Signal I2C Semaphore (triggering I2C thread) and ensure it returns no error
   OS_ISRExit(); //Exit Interrupt
 }
 
@@ -150,7 +142,7 @@ void __attribute__ ((interrupt)) PIT0_ISR(void)
 
 void PIT0Thread(void* pData)
 {
-  for(;;)
+  for (;;)
   {
     OS_SemaphoreWait(PIT0Semaphore, 0);
     if (PITCallback)
@@ -159,29 +151,6 @@ void PIT0Thread(void* pData)
     }
   }
 }
-
-//void PIT1Thread(void* pData)
-//{
-//  for(;;)
-//  {
-//
-//    OS_SemaphoreWait(PIT1Semaphore, 0);
-//    //TRIP THE CIRCUIT BREAKER AND RECORD HOW MANT TIMES IT IS TRIPPED
-//    if(!ResetMode)
-//    {
-//      OS_DisableInterrupts();
-//      Analog_Put(1, VOLT_TO_ANALOG(5)); // Swith on circuit breaker
-//      numberTripped.l++;
-//  //    Flash_Write16((volatile uint16_t *) Tripped, numberTripped.l);
-//      ResetMode = true;
-//      PIT_Set(PIT_Period, true, 3);
-//      OS_EnableInterrupts();
-//
-//    }
-//  }
-//}
-
-
 
 
 /*!

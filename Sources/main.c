@@ -59,16 +59,7 @@ const uint32_t PIT_Period = 1000000000; /*!< 1 second in nano */
 bool ResetMode;
 float Frequency;
 
-//
-//TFTMChannel FTMPacket =
-//{
-//  0, /*!< Channel being used */
-//  CPU_MCGFF_CLK_HZ_CONFIG_0, /*!< delay count: fixed frequency clock, mentioned in Timing and Generation Docs */
-//  TIMER_FUNCTION_OUTPUT_COMPARE, /*!< Brief specific: we are using OutputCompare*/
-//  TIMER_OUTPUT_LOW, /*!< Choose one functionality of output compare: low */
-//  NULL, /*!< Setting User Callback Function NOW UNUSED */
-//  (void*) 0, /*!< User callback arguments being passed  NOW UNUSED */
-//};
+
 
 
 // Prototypes functions
@@ -103,11 +94,6 @@ OS_THREAD_STACK(UARTRXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(UARTTXStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PacketHandlerStack, THREAD_STACK_SIZE);
 OS_THREAD_STACK(PIT0Stack, THREAD_STACK_SIZE);
-//OS_THREAD_STACK(PIT1Stack, THREAD_STACK_SIZE);
-
-//OS_THREAD_STACK(RTCStack, THREAD_STACK_SIZE);
-//OS_THREAD_STACK(FTMStack, THREAD_STACK_SIZE);
-
 
 // ----------------------------------------
 // Thread priorities
@@ -160,7 +146,12 @@ void PacketHandlerThread(void* pData)
   }
 }
 
-
+/*! @brief Initialise the Low Power Timer
+ *
+ *  @param count - the period of the low power timer in millisecond
+ *
+ *  @note - Loops until interrupted by thread of higher priority
+ */
 void LPTMRInit(const int count)
 {
   // Enable clock gate to LPTMR module
@@ -197,6 +188,10 @@ void LPTMRInit(const int count)
 //  LPTMR0_CSR |= LPTMR_CSR_TEN_MASK;
 }
 
+/*! @brief LPTimer ISR - used for Reset mode - outputting the trip for a second and re-init the DOR with all values equaling to zero
+ *
+ *  @note - Loops until interrupted by thread of higher priority
+ */
 void __attribute__ ((interrupt)) LPTimer_ISR(void)
 {
   // Clear interrupt flag
@@ -206,7 +201,7 @@ void __attribute__ ((interrupt)) LPTimer_ISR(void)
 
   for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
   {
-    ChannelsData[analogNb].totalvoltageSqr = 0;
+    ChannelsData[analogNb].totalVoltageSqr = 0;
     ChannelsData[analogNb].currentRMS = 0;
     ChannelsData[analogNb].voltageRMS = 0;
     for(uint8_t i = 0; i < 16; i++)
@@ -234,10 +229,10 @@ static void InitModulesThread(void* pData)
 
   LPTMRInit(1000); // Set the Low power timer to a period of 1 second
   Current_Charac = INVERSE; // Set the default mode to inverse
-  TowerInit(); // Initialise tower modules 
+  TowerInit(); // Initialise tower modules used in previous labs
   Analog_Put(0, 0); 
   Analog_Put(1, 0);
-  PIT_Set(1250000, true, 0);
+  PIT_Set(1250000, true, 0); // Set the sample period to 1.25 ms
   OS_EnableInterrupts();
   while (OS_SemaphoreSignal(PacketHandlerSemaphore) != OS_NO_ERROR); // Signal Packet Handler Thread 
 
@@ -296,10 +291,10 @@ void AnalogLoopbackThread(void* pData)
       counterTrip[analogData->channelNb]++; // Incremetnting the count to reach the goal
       if (counterTrip[analogData->channelNb] >= goalTrip[analogData->channelNb]) // If goal is reached or beyond
       {
-        Analog_Put(1, VOLT_TO_ANALOG(5)); // Output in channel 2 after "delay"
+        Analog_Put(1, VOLT_TO_ANALOG(5)); // Output in channel 2 after trip "delay"
         LEDs_On(LED_GREEN); // Using LED to check without DSO
         LPTMR0_CSR |= LPTMR_CSR_TEN_MASK; // Start timer for reset mode 
-        NumberTripped.l++;
+        NumberTripped.l++; // Incrementing the number of time Tripped
         OS_EnableInterrupts();
 //        Flash_Write16((volatile uint16_t *) Tripped, NumberTripped.l); // Write the number of time tripped to Flash
       }
@@ -308,14 +303,14 @@ void AnalogLoopbackThread(void* pData)
         OS_EnableInterrupts();
       }
     }
-    if(PeriodComplete == 16)
+    if (PeriodComplete == 16) // Finding the frequency after every 16 samples, PeriodComplete is incremented in PIT_ISR
     {
-      TCrossing crossing;
-      if(Zero_Crossings(ChannelsData[analogData->channelNb].voltage, &crossing))
-        Frequency = Calculate_Frequency(&crossing);
+      TCrossing crossing; // structure that stores the zero crossings of waveform
+      if (Zero_Crossings(ChannelsData[analogData->channelNb].voltage, &crossing))
+        Frequency = Calculate_Frequency(&crossing); // Frequency is a global variable storing the current frequency of the wave
       OS_EnableInterrupts();
     }
-    else if (ChannelsData[analogData->channelNb].currentRMS < 1.03)
+    else if (ChannelsData[analogData->channelNb].currentRMS < 1.03) // If the currentRMS in under 1.03, the circuit breaking should not be tripped
     {
       Analog_Put(0, 0);
       LEDs_Off(LED_BLUE);
@@ -323,8 +318,6 @@ void AnalogLoopbackThread(void* pData)
     }
     else 
       OS_EnableInterrupts();
-
-
   }
 }
 
@@ -351,7 +344,7 @@ int main(void)
   while (OS_ThreadCreate(UARTTXThread, NULL, &UARTTXStack[THREAD_STACK_SIZE-1], 2) != OS_NO_ERROR); //UARTTX Thread
 
 
-  // Create threads for 2 analog loopback channels
+  // Create threads for 3 analog loopback channels
   for (uint8_t threadNb = 0; threadNb < NB_ANALOG_CHANNELS; threadNb++)
   {
     error = OS_ThreadCreate(AnalogLoopbackThread,
@@ -361,12 +354,7 @@ int main(void)
   }
 
   while (OS_ThreadCreate(PIT0Thread, NULL, &PIT0Stack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //PIT Thread
-
-//  while (OS_ThreadCreate(RTCThread, NULL, &RTCStack[THREAD_STACK_SIZE-1], 6) != OS_NO_ERROR); //RTC Thread
-//  while (OS_ThreadCreate(FTMThread, NULL, &FTMStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //FTM Thread
   while (OS_ThreadCreate(PacketHandlerThread, NULL, &PacketHandlerStack[THREAD_STACK_SIZE-1], 7) != OS_NO_ERROR); //Packet Handler Thread
-
-
   PacketHandlerSemaphore = OS_SemaphoreCreate(0);
 
   // Start multithreading - never returns!
@@ -449,9 +437,9 @@ bool TowerInit(void)
   LEDs_Init();
   if (towerModeInit && towerNumberInit && trippedInit && characInit)
   {
-    if (Tripped->l == 0xffff)
+    if (Tripped->l == 0xffff) /* if unprogrammed, value = 0xffff, and therefore start writing to it with a value of 1 */
       Flash_Write16((volatile uint16_t *) Tripped, 0x1);
-    if (*CharacFlash == 0xff)
+    if (*CharacFlash == 0xff) /* Writing the current IDMT characteristics to Flash */
       Flash_Write8((volatile uint8_t *) CharacFlash, Current_Charac);
     if (TowerMode->l == 0xffff) /* when unprogrammed, value = 0xffff, announces in hint*/
     {
@@ -463,10 +451,6 @@ bool TowerInit(void)
     }
 
   }
-//  if(Tripped->l != 0xffff)
-//    NumberTripped.l = _FH(FLASH_DATA_START + 4);
-//  else
-//    NumberTripped.l = 0;
   PIT_Init(MODULECLK, (void*) &PIT0Callback , NULL);
   return Packet_Init(BAUDRATE, MODULECLK);
 }
@@ -612,8 +596,8 @@ bool TowerTimePackets(void)
  */
 bool DORPackets (void)
 {
-  float decimalCurrents[NB_ANALOG_CHANNELS];
-  float decimalFrequency;
+  float decimalCurrents[NB_ANALOG_CHANNELS]; // To store the decimal part of the current when sending packet
+  float decimalFrequency; // To store the decimal part of the frequency when sending packet
   switch (Packet_Parameter1)
   {
     case DOR_IDMT_CHAR:
@@ -633,7 +617,7 @@ bool DORPackets (void)
 
 
     case DOR_GET_CURRENTS:
-      // conver the current RMS and ouputting it as a packet. MSB is the int part and LSB the float part
+      // convert  the current RMS and ouputting it as a packet. MSB is the int part and LSB the float part
       decimalCurrents[0] =  (ChannelsData[0].currentRMS - ((uint8_t) (ChannelsData[0].currentRMS)))*100;
       decimalCurrents[1] =  (ChannelsData[1].currentRMS - ((uint8_t) (ChannelsData[1].currentRMS)))*100;
       decimalCurrents[2] =  (ChannelsData[2].currentRMS - ((uint8_t) (ChannelsData[2].currentRMS)))*100;
@@ -643,6 +627,7 @@ bool DORPackets (void)
       break;
 
     case DOR_GET_FREQUENCY:
+      // convert the frequency and outputting it as a packet. MSB is the int part and LSB is the decimal part
       decimalFrequency =  (Frequency - ((uint8_t) (Frequency)))*100;
       Packet_Put(DOR_COMMAND, 2, (uint8_t) (decimalCurrents[2]), (uint8_t) Frequency);
       break;
@@ -665,6 +650,7 @@ bool DORPackets (void)
  */
 void PIT0Callback()
 {
+  //Signals the 3 analog threads semaphores
   for (uint8_t analogNb = 0; analogNb < NB_ANALOG_CHANNELS; analogNb++)
     OS_SemaphoreSignal(AnalogThreadData[analogNb].semaphore);
 }
