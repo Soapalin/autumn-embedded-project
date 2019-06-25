@@ -55,7 +55,7 @@ float Real_RMS(TChannelData* channelData)
 
 float Current_RMS(float voltageRMS)
 {
-  return (voltageRMS*0.350); // 350mV RMS = 1 A RMS (project notes)
+  return (voltageRMS/0.350); // 350mV RMS = 1 A RMS (project notes)
 }
 
 
